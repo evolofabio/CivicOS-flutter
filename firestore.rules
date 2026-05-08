@@ -10,6 +10,21 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
+    match /comuni/{comuneId}/comunicazioni/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /comuni/{comuneId}/segnalazioni/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /comuni/{comuneId}/prenotazioni/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
     match /comuni/{comuneId}/{document=**} {
       allow read: if true;
       allow write: if isSignedIn();

@@ -1586,20 +1586,22 @@ async function discoverComuniFromSubcollections() {
   var candidates = new Set();
   var collections = ['comunicazioni', 'segnalazioni', 'prenotazioni'];
 
-  await Promise.all(collections.map(async function(colName) {
-    try {
-      var snap = await window._db.collectionGroup(colName).limit(500).get();
-      snap.forEach(function(doc) {
-        var parts = doc.ref.path.split('/');
-        // Expected: comuni/{comuneId}/{subcollection}/{docId}
-        if (parts.length >= 4 && parts[0] === 'comuni') {
-          var comuneId = parts[1];
-          var comuneName = getComuneNameFromDocId(comuneId);
-          if (comuneName) candidates.add(comuneName);
+  await Promise.all(COMUNI.map(async function(comuneName) {
+    var comuneId = comuneDocIdFromName(comuneName);
+    if (!comuneId) return;
+
+    for (var i = 0; i < collections.length; i++) {
+      var colName = collections[i];
+      try {
+        var snap = await window._db.collection('comuni').doc(comuneId).collection(colName).limit(1).get();
+        if (!snap.empty) {
+          candidates.add(comuneName);
+          break;
         }
-      });
-    } catch (e) {
-      console.error('Cloud activity discovery failed for', colName, e);
+      } catch (e) {
+        // Evita rumore in console: il fallback resta best-effort.
+        console.warn('Cloud activity check skipped for', comuneName, colName, e && e.code ? e.code : e);
+      }
     }
   }));
 
