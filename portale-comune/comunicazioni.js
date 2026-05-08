@@ -8,8 +8,16 @@ let uploadedFiles = [];
 let selectedPriority = 'normale';
 let comuneFrazioni = []; // frazioni del comune corrente
 
+async function ensureFirebaseReady() {
+  if (typeof window.civicosEnsureFirebaseSession === 'function') {
+    const ok = await window.civicosEnsureFirebaseSession();
+    if (!ok) throw new Error('Sessione Firebase non disponibile');
+  }
+}
+
 // Carica frazioni del comune corrente (da Firestore o da localStorage config)
 async function loadFrazioniComune() {
+  await ensureFirebaseReady();
   // Prima prova da Firestore
   try {
     const doc = await comuneRef.get();
@@ -77,6 +85,7 @@ function setSelectedFrazioni(frazioni) {
 
 // Carica comunicazioni da Firestore
 async function loadComunicazioni() {
+  await ensureFirebaseReady();
   comunicazioni = [];
   let snapshot;
   try {
@@ -108,6 +117,7 @@ async function loadComunicazioni() {
 
 // Salva o aggiorna comunicazione su Firestore
 async function saveComunicazione(data, isDraft = false) {
+  await ensureFirebaseReady();
   const payload = {
     ...data,
     data: data.data || todayISO(),
@@ -147,6 +157,7 @@ async function saveComunicazione(data, isDraft = false) {
 
 // Cancella comunicazione da Firestore
 async function deleteComunicazione(id) {
+  await ensureFirebaseReady();
   await comuneRef.collection('comunicazioni').doc(id.toString()).delete();
   await loadComunicazioni();
 }
@@ -364,7 +375,7 @@ function formatSize(bytes) {
 }
 
 // ── Publish / Save / Delete ─────────────────────────────────
-function publishPost() {
+async function publishPost() {
   const titolo = document.getElementById('postTitolo').value.trim();
   const contenuto = document.getElementById('postCorpo').value.trim();
   const zona = document.getElementById('postZona').value.trim();
@@ -386,11 +397,16 @@ function publishPost() {
   if (currentPostId) {
     data.id = currentPostId;
   }
-  saveComunicazione(data);
-  closePanel();
+  try {
+    await saveComunicazione(data);
+    closePanel();
+  } catch (e) {
+    console.error('Publish comunicazione failed:', e);
+    alert('Impossibile pubblicare la comunicazione. Verifica connessione e autenticazione.');
+  }
 }
 
-function saveDraft() {
+async function saveDraft() {
   const titolo = document.getElementById('postTitolo').value.trim();
   if (!titolo) { alert('Inserisci almeno un titolo'); return; }
 
@@ -408,38 +424,66 @@ function saveDraft() {
   if (currentPostId) {
     data.id = currentPostId;
   }
-  saveComunicazione(data, true);
-  closePanel();
+  try {
+    await saveComunicazione(data, true);
+    closePanel();
+  } catch (e) {
+    console.error('Save draft comunicazione failed:', e);
+    alert('Impossibile salvare la bozza. Verifica connessione e autenticazione.');
+  }
 }
 
-function deletePost() {
+async function deletePost() {
   if (!currentPostId) return;
   if (!confirm('Eliminare questa comunicazione?')) return;
-  deleteComunicazione(currentPostId);
-  closePanel();
+  try {
+    await deleteComunicazione(currentPostId);
+    closePanel();
+  } catch (e) {
+    console.error('Delete comunicazione failed:', e);
+    alert('Impossibile eliminare la comunicazione.');
+  }
 }
 
-function archivePost(id) {
+async function archivePost(id) {
   const c = comunicazioni.find(x => x.id === id);
   if (c) {
     c.stato = 'archiviato';
-    saveComunicazione(c); closePanel();
+    try {
+      await saveComunicazione(c);
+      closePanel();
+    } catch (e) {
+      console.error('Archive comunicazione failed:', e);
+      alert('Impossibile archiviare la comunicazione.');
+    }
   }
 }
 
-function quickPublish(id) {
+async function quickPublish(id) {
   const c = comunicazioni.find(x => x.id === id);
   if (c) {
     c.stato = 'attivo'; c.data = todayISO();
-    saveComunicazione(c); closePanel();
+    try {
+      await saveComunicazione(c);
+      closePanel();
+    } catch (e) {
+      console.error('Quick publish comunicazione failed:', e);
+      alert('Impossibile pubblicare la comunicazione.');
+    }
   }
 }
 
-function reactivatePost(id) {
+async function reactivatePost(id) {
   const c = comunicazioni.find(x => x.id === id);
   if (c) {
     c.stato = 'attivo';
-    saveComunicazione(c); closePanel();
+    try {
+      await saveComunicazione(c);
+      closePanel();
+    } catch (e) {
+      console.error('Reactivate comunicazione failed:', e);
+      alert('Impossibile riattivare la comunicazione.');
+    }
   }
 }
 
@@ -472,8 +516,10 @@ function todayISO() {
 
 // ── Init & event listeners ──────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  loadComunicazioni();
-  loadFrazioniComune();
+  Promise.all([loadComunicazioni(), loadFrazioniComune()]).catch((e) => {
+    console.error('Init comunicazioni failed:', e);
+    alert('Errore inizializzazione comunicazioni. Ricarica la pagina.');
+  });
 
   // Filters
   document.getElementById('filterTipo').addEventListener('change', render);
