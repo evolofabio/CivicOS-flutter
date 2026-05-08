@@ -10,8 +10,7 @@ let comuneFrazioni = []; // frazioni del comune corrente
 
 async function ensureFirebaseReady() {
   if (typeof window.civicosEnsureFirebaseSession === 'function') {
-    const ok = await window.civicosEnsureFirebaseSession();
-    if (!ok) throw new Error('Sessione Firebase non disponibile');
+    await window.civicosEnsureFirebaseSession();
   }
 }
 
