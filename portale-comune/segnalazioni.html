@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Segnalazioni</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html">Dashboard</a>
+  <a href="segnalazioni.html" class="active">Segnalazioni <span class="badge" id="countBadge"></span></a>
+  <a href="prenotazioni.html">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="comunicazioni.html">Comunicazioni</a>
+  <a href="aziende.html">Aziende e Società</a>
+  <a href="mezzi.html">Mezzi e Dipendenti</a>
+  <a href="scadenze.html">Scadenze</a>
+  <a href="utenti.html">Utenti</a>
+  <a href="#" class="logout-link" onclick="civicosLogout()">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <div class="page-header">
+    <h1>Gestione Segnalazioni</h1>
+    <span id="totalLabel" style="color:#888;font-size:14px;"></span>
+  </div>
+
+  <div class="filters">
+    <select id="filterStato">
+      <option value="">Tutti gli stati</option>
+      <option value="Aperta">Aperta</option>
+      <option value="In lavorazione">In lavorazione</option>
+      <option value="Risolta">Risolta</option>
+    </select>
+    <select id="filterCategoria">
+      <option value="">Tutte le categorie</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="Cerca per descrizione o zona…" />
+  </div>
+
+  <div class="table-box">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Data</th>
+          <th>Categoria</th>
+          <th>Descrizione</th>
+          <th>Utente</th>
+          <th>Posizione</th>
+          <th>Stato</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Map overview -->
+  <div class="map-box" style="margin-top:20px;">
+    <h3>Mappa Segnalazioni</h3>
+    <div id="map"></div>
+  </div>
+
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-overlay" id="detailPanel">
+  <button class="close-btn" onclick="closeDetail()">&times;</button>
+  <h2 id="detailTitle"></h2>
+  <div id="detailContent"></div>
+  <div class="actions" id="detailActions"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="portale-auth.js"></script>
+<script src="segnalazioni.js"></script>
+</body>
+</html>
