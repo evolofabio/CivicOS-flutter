@@ -1565,12 +1565,45 @@ async function preloadCloudComuni() {
       }
     });
 
+    // Fallback: se i doc root non esistono ma ci sono subcollection attive,
+    // ricava i comuni dai path dei documenti (comunicazioni/segnalazioni/prenotazioni).
+    var discovered = await discoverComuniFromSubcollections();
+    discovered.forEach(function(comuneName) {
+      if (!fromCloud[comuneName]) fromCloud[comuneName] = { discoveredFromActivity: true };
+    });
+
     cloudRegisteredComuni = fromCloud;
     saveConfig(config);
     renderComuni();
   } catch (err) {
     console.error('Cloud comuni preload failed:', err);
   }
+}
+
+async function discoverComuniFromSubcollections() {
+  if (!window._db) return [];
+
+  var candidates = new Set();
+  var collections = ['comunicazioni', 'segnalazioni', 'prenotazioni'];
+
+  await Promise.all(collections.map(async function(colName) {
+    try {
+      var snap = await window._db.collectionGroup(colName).limit(500).get();
+      snap.forEach(function(doc) {
+        var parts = doc.ref.path.split('/');
+        // Expected: comuni/{comuneId}/{subcollection}/{docId}
+        if (parts.length >= 4 && parts[0] === 'comuni') {
+          var comuneId = parts[1];
+          var comuneName = getComuneNameFromDocId(comuneId);
+          if (comuneName) candidates.add(comuneName);
+        }
+      });
+    } catch (e) {
+      console.error('Cloud activity discovery failed for', colName, e);
+    }
+  }));
+
+  return Array.from(candidates);
 }
 
 // ── Get comune registration info from localStorage ──
