@@ -252,6 +252,165 @@ body {
   margin-left: auto;
 }
 
+.ops-panels {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.ops-card {
+  background: #fff;
+  border: 1px solid #e3e9f1;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+.ops-card h3 {
+  font-size: 13px;
+  color: #1E4E8C;
+  margin-bottom: 8px;
+}
+.health-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.health-badge {
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.health-badge.ok { background: #e9f9ee; color: #2E7D32; }
+.health-badge.warn { background: #FFF3E0; color: #E65100; }
+.health-badge.err { background: #FFEBEE; color: #C62828; }
+.diag-list {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #4b5565;
+  line-height: 1.5;
+  max-height: 120px;
+  overflow: auto;
+}
+.admin-alerts {
+  margin-bottom: 14px;
+  display: grid;
+  gap: 8px;
+}
+.admin-alert-item {
+  background: #fff7e9;
+  border: 1px solid #ffd59a;
+  color: #8a5800;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.comune-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.meta-pill {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-weight: 600;
+}
+.meta-pill.sync-ok { background: #e8f5e9; color: #2E7D32; }
+.meta-pill.sync-err { background: #ffebee; color: #C62828; }
+.meta-pill.complete-ok { background: #e3f2fd; color: #1E4E8C; }
+.meta-pill.complete-low { background: #fff3e0; color: #e65100; }
+
+.cfg-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.cfg-progress {
+  flex: 1;
+  min-width: 220px;
+}
+.cfg-progress-label {
+  font-size: 12px;
+  color: #66758c;
+  margin-bottom: 4px;
+}
+.cfg-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #e5edf7;
+  overflow: hidden;
+}
+.cfg-progress-bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #1E4E8C, #2E7D32);
+  width: 0;
+  transition: width .2s;
+}
+
+.preset-box {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.preset-box select {
+  min-width: 220px;
+}
+.preset-diff {
+  font-size: 12px;
+  color: #54657b;
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.history-box {
+  margin-top: 14px;
+  border-top: 1px dashed #d8e3ef;
+  padding-top: 12px;
+}
+.history-list {
+  max-height: 140px;
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+}
+.history-item {
+  border: 1px solid #e5edf7;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-select {
+  margin-top: 8px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  font-size: 12px;
+  padding: 6px;
+}
+.role-select option {
+  color: #1a1a2e;
+}
+
 /* ── Comuni Grid ── */
 .comuni-grid {
   display: grid;
@@ -877,6 +1036,7 @@ body {
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
+  .ops-panels { grid-template-columns: 1fr; }
   .sidebar {
     width: 250px;
     padding: 16px 0;
@@ -921,6 +1081,11 @@ body {
   <div class="sidebar-user" id="sidebarUser">
     <div class="name">Admin</div>
     Gestione piattaforma
+    <select id="adminRole" class="role-select" onchange="onAdminRoleChange()" aria-label="Ruolo amministratore">
+      <option value="super-admin">Super Admin</option>
+      <option value="operatore-config">Operatore Configurazione</option>
+      <option value="solo-lettura">Solo Lettura</option>
+    </select>
   </div>
   <nav class="sidebar-nav" aria-label="Navigazione amministrazione">
     <div class="section-label">Panoramica</div>
@@ -971,7 +1136,42 @@ body {
         <div class="label">Utenti registrati</div>
       </div>
     </div>
+
+    <div class="ops-panels">
+      <div class="ops-card">
+        <h3>Stato Dati</h3>
+        <div class="health-row">
+          <span>Origine principale</span>
+          <span id="dataOriginBadge" class="health-badge warn">Solo locale</span>
+        </div>
+        <div class="health-row">
+          <span>Ultimo sync cloud</span>
+          <strong id="lastSyncAt">—</strong>
+        </div>
+        <div class="health-row">
+          <span>Errori sync correnti</span>
+          <strong id="syncErrorsCount">0</strong>
+        </div>
+      </div>
+      <div class="ops-card">
+        <h3>Diagnostica Rapida</h3>
+        <div class="health-row">
+          <span>Comuni da cloud</span>
+          <strong id="diagCloudCount">0</strong>
+        </div>
+        <div class="health-row">
+          <span>Comuni da locale</span>
+          <strong id="diagLocalCount">0</strong>
+        </div>
+        <div class="health-row">
+          <button class="btn-all-on" style="padding:6px 10px;border:none;border-radius:8px;cursor:pointer;" onclick="preloadCloudComuni()">↻ Ricarica cloud</button>
+        </div>
+        <div id="diagLog" class="diag-list"></div>
+      </div>
+    </div>
   </div>
+
+  <div id="adminAlerts" class="admin-alerts"></div>
 
   <!-- ── Filter bar ── -->
   <div class="filter-bar">
@@ -983,6 +1183,16 @@ body {
       <option value="inattivo">Nessun servizio</option>
       <option value="registrato">Registrati</option>
       <option value="non_registrato">Non registrati</option>
+    </select>
+    <select id="filterSync" onchange="renderComuni()">
+      <option value="tutti">Sync: tutti</option>
+      <option value="ok">Sync OK</option>
+      <option value="errore">Sync con errori</option>
+    </select>
+    <select id="filterCompletezza" onchange="renderComuni()">
+      <option value="tutti">Config: tutte</option>
+      <option value="complete">Config complete</option>
+      <option value="incomplete">Config incomplete</option>
     </select>
     <span class="count" id="countLabel">48 comuni</span>
   </div>
@@ -1003,6 +1213,17 @@ body {
     </div>
 
     <div class="config-panel" id="cfgPanel">
+
+      <div class="cfg-toolbar">
+        <div class="cfg-progress">
+          <div class="cfg-progress-label" id="cfgProgressLabel">Step 1/7</div>
+          <div class="cfg-progress-bar"><span id="cfgProgressFill"></span></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-reset-config" type="button" onclick="goPrevConfigTab()">← Precedente</button>
+          <button class="btn-save-config" type="button" onclick="goNextConfigTab()">Successivo →</button>
+        </div>
+      </div>
 
       <!-- Config Tabs -->
       <div class="config-tabs" role="tablist" aria-label="Sezioni configurazione comune">
@@ -1166,6 +1387,19 @@ body {
       <div class="config-tab-panel" id="cfgTabServizi">
         <div class="cfg-section-title">🔧 Servizi da attivare per il Comune</div>
         <p style="font-size:13px;color:#666;margin-bottom:16px;">Seleziona quali servizi CivicOS attivare. Il Sindaco vedrà solo i servizi abilitati nel portale.</p>
+
+        <div class="preset-box">
+          <select id="presetSelect">
+            <option value="">— Preset servizi —</option>
+            <option value="small">Comune Piccolo</option>
+            <option value="medium">Comune Medio</option>
+            <option value="tourism">Comune Turistico</option>
+            <option value="full">Tutti i servizi</option>
+          </select>
+          <button class="btn-all-on" style="padding:8px 12px;border:none;border-radius:8px;cursor:pointer;" onclick="previewPresetDiff()">Confronta</button>
+          <button class="btn-all-off" style="padding:8px 12px;border:none;border-radius:8px;cursor:pointer;" onclick="applyServicePreset()">Applica preset</button>
+        </div>
+        <div id="presetDiffBox" class="preset-diff">Seleziona un preset per visualizzare le differenze.</div>
 
         <div style="display:flex;gap:8px;margin-bottom:16px;">
           <button class="btn-all-on" style="padding:8px 16px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;" onclick="cfgSetAllServizi(true)">✅ Attiva tutti</button>
@@ -1346,6 +1580,14 @@ body {
         <button class="btn-save-config" onclick="saveCfgComune()">💾 Salva Configurazione</button>
         <button class="btn-reset-config" onclick="resetCfgForm()">🔄 Ripristina</button>
         <button class="btn-delete-config" onclick="deleteCfgComune()">🗑️ Elimina Configurazione</button>
+        <button class="btn-reset-config" onclick="exportCfgComune()">📤 Export JSON</button>
+        <button class="btn-reset-config" onclick="importCfgComune()">📥 Import JSON</button>
+        <button class="btn-reset-config" onclick="restoreLastCfgVersion()">⏪ Ripristina Ultima Versione</button>
+      </div>
+
+      <div class="history-box">
+        <div class="cfg-section-title">🕘 Storico Versioni Configurazione</div>
+        <div id="cfgHistoryList" class="history-list"></div>
       </div>
 
     </div><!-- end config-panel -->
@@ -1528,6 +1770,184 @@ function saveConfig(cfg) {
 
 var config = loadConfig();
 var cloudRegisteredComuni = {};
+var cloudSyncErrors = {};
+var cloudSourceMode = 'local';
+var lastCloudSyncAt = null;
+var cfgCurrentTabId = 'sindaco';
+
+var ADMIN_ROLE_KEY = 'civicos_admin_role';
+var ADMIN_AUDIT_KEY = 'civicos_admin_audit_log';
+
+var SERVICE_PRESETS = {
+  small: ['segnalazioni', 'comunicazioni', 'calendario', 'prenotazioni'],
+  medium: ['segnalazioni', 'comunicazioni', 'calendario', 'prenotazioni', 'cisterne', 'scadenze', 'profilo'],
+  tourism: ['segnalazioni', 'comunicazioni', 'calendario', 'prenotazioni', 'aziende', 'profilo', 'servizi_convenzionati'],
+  full: SERVIZI.map(function(s) { return s.id; })
+};
+
+function formatDateTime(dt) {
+  if (!dt) return '—';
+  try {
+    return new Date(dt).toLocaleString('it-IT');
+  } catch (e) {
+    return '—';
+  }
+}
+
+function getAdminRole() {
+  return localStorage.getItem(ADMIN_ROLE_KEY) || 'super-admin';
+}
+
+function onAdminRoleChange() {
+  var roleEl = document.getElementById('adminRole');
+  if (!roleEl) return;
+  localStorage.setItem(ADMIN_ROLE_KEY, roleEl.value);
+  applyRolePermissions();
+  addAudit('role-change', null, { role: roleEl.value });
+  showToast('🔐 Ruolo impostato: ' + roleEl.value);
+}
+
+function applyRolePermissions() {
+  var role = getAdminRole();
+  var isReadOnly = role === 'solo-lettura';
+  var isOperator = role === 'operatore-config';
+
+  document.querySelectorAll('#cfgPanel input, #cfgPanel textarea, #cfgPanel select, #cfgPanel button').forEach(function(el) {
+    if (el.id === 'cfgComuneSelect' || el.id === 'adminRole') return;
+    if (el.classList.contains('btn-reset-config') && el.textContent.indexOf('Export') >= 0) return;
+    if (isReadOnly) {
+      el.setAttribute('disabled', 'disabled');
+    } else {
+      el.removeAttribute('disabled');
+    }
+  });
+
+  var deleteBtn = document.querySelector('.btn-delete-config');
+  if (deleteBtn) {
+    if (isReadOnly || isOperator) deleteBtn.setAttribute('disabled', 'disabled');
+    else deleteBtn.removeAttribute('disabled');
+  }
+}
+
+function getAuditLog() {
+  try {
+    return JSON.parse(localStorage.getItem(ADMIN_AUDIT_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function addAudit(action, comune, details) {
+  var logs = getAuditLog();
+  logs.unshift({
+    at: new Date().toISOString(),
+    action: action,
+    comune: comune || '',
+    details: details || {}
+  });
+  if (logs.length > 200) logs = logs.slice(0, 200);
+  localStorage.setItem(ADMIN_AUDIT_KEY, JSON.stringify(logs));
+  renderDiagnosticLog();
+}
+
+function renderDiagnosticLog() {
+  var el = document.getElementById('diagLog');
+  if (!el) return;
+  var logs = getAuditLog().slice(0, 8);
+  if (!logs.length) {
+    el.innerHTML = 'Nessun evento audit recente.';
+    return;
+  }
+  el.innerHTML = logs.map(function(l) {
+    var when = formatDateTime(l.at);
+    return '<div>• <strong>' + escapeH(l.action) + '</strong>' +
+      (l.comune ? ' [' + escapeH(l.comune) + ']' : '') +
+      ' <span style="color:#8898ad;">' + escapeH(when) + '</span></div>';
+  }).join('');
+}
+
+function setCloudSyncError(key, err) {
+  cloudSyncErrors[key] = (err && err.code) ? err.code : String(err || 'errore');
+  updateHealthPanel();
+}
+
+function clearCloudSyncError(key) {
+  delete cloudSyncErrors[key];
+  updateHealthPanel();
+}
+
+function updateHealthPanel() {
+  var localCount = Object.keys(getLocalRegisteredComuni()).length;
+  var cloudCount = Object.keys(cloudRegisteredComuni).length;
+  var errorsCount = Object.keys(cloudSyncErrors).length;
+
+  var originBadge = document.getElementById('dataOriginBadge');
+  var lastSyncEl = document.getElementById('lastSyncAt');
+  var errEl = document.getElementById('syncErrorsCount');
+  var dCloud = document.getElementById('diagCloudCount');
+  var dLocal = document.getElementById('diagLocalCount');
+
+  if (originBadge) {
+    originBadge.className = 'health-badge ' + (errorsCount ? 'err' : (cloudSourceMode === 'cloud' ? 'ok' : 'warn'));
+    originBadge.textContent = errorsCount ? 'Sync in errore' : (cloudSourceMode === 'cloud' ? 'Cloud OK' : 'Solo locale');
+  }
+  if (lastSyncEl) lastSyncEl.textContent = formatDateTime(lastCloudSyncAt);
+  if (errEl) errEl.textContent = String(errorsCount);
+  if (dCloud) dCloud.textContent = String(cloudCount);
+  if (dLocal) dLocal.textContent = String(localCount);
+
+  updateAdminAlerts();
+}
+
+function getConfigCompleteness(comune) {
+  var reg = getAllRegisteredComuni()[comune];
+  if (!reg) return { score: 0, ok: false };
+
+  var checks = [
+    !!(reg.sindaco && reg.sindaco.nome),
+    !!(reg.sindaco && reg.sindaco.cognome),
+    !!(reg.sindaco && reg.sindaco.email),
+    !!(reg.info && reg.info.indirizzo),
+    !!(reg.info && reg.info.cap),
+    !!(reg.info && reg.info.pec),
+    !!(reg.ident && reg.ident.istat),
+    !!(reg.portale && reg.portale.benvenuto),
+    !!(reg.frazioni && reg.frazioni.length),
+    !!(reg.orari && Object.keys(reg.orari).length)
+  ];
+
+  var passed = checks.filter(Boolean).length;
+  var score = Math.round((passed / checks.length) * 100);
+  return { score: score, ok: score >= 70 };
+}
+
+function updateAdminAlerts() {
+  var el = document.getElementById('adminAlerts');
+  if (!el) return;
+  var allReg = getAllRegisteredComuni();
+  var alerts = [];
+
+  COMUNI.forEach(function(c) {
+    if (!allReg[c]) return;
+    var cnt = getComuneActiveCount(c);
+    var comp = getConfigCompleteness(c);
+    if (cnt > 0 && !comp.ok) {
+      alerts.push('⚠️ ' + c + ': servizi attivi ma configurazione incompleta (' + comp.score + '%).');
+    }
+  });
+
+  Object.keys(cloudSyncErrors).forEach(function(k) {
+    alerts.push('❌ Errore sync [' + k + ']: ' + cloudSyncErrors[k]);
+  });
+
+  if (!alerts.length) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = alerts.slice(0, 6).map(function(msg) {
+    return '<div class="admin-alert-item">' + escapeH(msg) + '</div>';
+  }).join('');
+}
 
 function normalizeServiceMap(raw) {
   var source = raw && typeof raw === 'object' ? raw : {};
@@ -1573,9 +1993,14 @@ async function preloadCloudComuni() {
     });
 
     cloudRegisteredComuni = fromCloud;
+    cloudSourceMode = Object.keys(fromCloud).length ? 'cloud' : 'local';
+    lastCloudSyncAt = new Date().toISOString();
+    clearCloudSyncError('preload');
     saveConfig(config);
     renderComuni();
+    updateHealthPanel();
   } catch (err) {
+    setCloudSyncError('preload', err);
     console.error('Cloud comuni preload failed:', err);
   }
 }
@@ -1600,6 +2025,7 @@ async function discoverComuniFromSubcollections() {
         }
       } catch (e) {
         // Evita rumore in console: il fallback resta best-effort.
+        setCloudSyncError(comuneName + ':' + colName, e);
         console.warn('Cloud activity check skipped for', comuneName, colName, e && e.code ? e.code : e);
       }
     }
@@ -1651,8 +2077,10 @@ function toggleService(comune, serviceId) {
   config[comune][serviceId] = !config[comune][serviceId];
   saveConfig(config);
   syncComuneServicesToFirestore(comune).catch(function(err) {
+    setCloudSyncError(comune + ':servizi', err);
     console.error('Sync servizi failed:', err);
   });
+  addAudit('toggle-service', comune, { serviceId: serviceId, enabled: !!config[comune][serviceId] });
   updateStats();
   updateCardStatus(comune);
   showToast((config[comune][serviceId] ? '✅ Attivato' : '❌ Disattivato') + ': ' + getServiceName(serviceId) + ' – ' + comune);
@@ -1667,8 +2095,10 @@ function setAllServices(comune, state) {
   SERVIZI.forEach(function(s) { config[comune][s.id] = state; });
   saveConfig(config);
   syncComuneServicesToFirestore(comune).catch(function(err) {
+    setCloudSyncError(comune + ':servizi', err);
     console.error('Sync servizi failed:', err);
   });
+  addAudit('set-all-services', comune, { enabled: !!state });
   renderComuni();
   showToast(state ? '✅ Tutti i servizi attivati per ' + comune : '❌ Tutti i servizi disattivati per ' + comune);
 }
@@ -1682,6 +2112,7 @@ async function syncComuneServicesToFirestore(comuneName) {
     servizi: normalizeServiceMap(config[comuneName]),
     servicesUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
+  clearCloudSyncError(comuneName + ':servizi');
 }
 
 function isComuneRegistered(comune) {
@@ -1724,6 +2155,7 @@ function updateStats() {
   document.getElementById('statServizi').textContent = totalServizi;
   document.getElementById('statCompleti').textContent = completi;
   document.getElementById('statUtenti').textContent = getTotalUsers();
+  updateHealthPanel();
 }
 
 function updateCardStatus(comune) {
@@ -1756,6 +2188,8 @@ function renderComuni() {
   var grid = document.getElementById('comuniGrid');
   var search = document.getElementById('searchComune').value.toLowerCase().trim();
   var filterStato = document.getElementById('filterStato').value;
+  var filterSync = document.getElementById('filterSync').value;
+  var filterCompletezza = document.getElementById('filterCompletezza').value;
   var allReg = getAllRegisteredComuni();
 
   var filtered = COMUNI.filter(function(c) {
@@ -1763,6 +2197,13 @@ function renderComuni() {
     if (filterStato === 'registrato' && !allReg[c]) return false;
     if (filterStato === 'non_registrato' && allReg[c]) return false;
     if (['attivo','parziale','inattivo'].indexOf(filterStato) >= 0 && getComuneStatus(c) !== filterStato) return false;
+    var hasSyncErr = Object.keys(cloudSyncErrors).some(function(k) { return k.indexOf(c + ':') === 0; });
+    if (filterSync === 'ok' && hasSyncErr) return false;
+    if (filterSync === 'errore' && !hasSyncErr) return false;
+
+    var complete = getConfigCompleteness(c).ok;
+    if (filterCompletezza === 'complete' && !complete) return false;
+    if (filterCompletezza === 'incomplete' && complete) return false;
     return true;
   });
 
@@ -1776,6 +2217,8 @@ function renderComuni() {
     var status = getComuneStatus(comune);
     var activeCount = getComuneActiveCount(comune);
     var labels = { attivo: 'Tutti attivi', parziale: activeCount + '/' + SERVIZI.length + ' attivi', inattivo: 'Non attivo' };
+    var complete = getConfigCompleteness(comune);
+    var hasSyncErr = Object.keys(cloudSyncErrors).some(function(k) { return k.indexOf(comune + ':') === 0; });
 
     html += '<div class="comune-card" data-comune="' + escapeH(comune) + '">';
 
@@ -1836,6 +2279,11 @@ function renderComuni() {
       html += '<div style="font-size:11px;color:#999;">⚠️ Comune non ancora registrato sulla piattaforma</div>';
       html += '</div>';
     }
+
+    html += '<div class="comune-meta">';
+    html += '<span class="meta-pill ' + (complete.ok ? 'complete-ok' : 'complete-low') + '">Config ' + complete.score + '%</span>';
+    html += '<span class="meta-pill ' + (hasSyncErr ? 'sync-err' : 'sync-ok') + '">' + (hasSyncErr ? 'Sync errore' : 'Sync OK') + '</span>';
+    html += '</div>';
 
     html += '</div>'; // end anagrafica
 
@@ -1911,6 +2359,7 @@ function switchTab(tab, linkEl) {
 
     if (tab === 'registrati') {
       document.getElementById('filterStato').value = 'registrato';
+      document.getElementById('filterCompletezza').value = 'tutti';
     } else if (tab === 'comuni') {
       document.getElementById('filterStato').value = 'tutti';
     } else {
@@ -1979,6 +2428,40 @@ function onComuneSelected() {
 
   loadCfgData(comune, reg);
   switchConfigTab('sindaco', document.querySelector('.config-tab-btn'));
+  renderCfgHistory();
+}
+
+function getCfgTabOrder() {
+  return ['sindaco', 'sede', 'frazioni', 'servizi', 'portale', 'orari', 'link'];
+}
+
+function updateCfgProgress() {
+  var order = getCfgTabOrder();
+  var idx = order.indexOf(cfgCurrentTabId);
+  if (idx < 0) idx = 0;
+  var label = document.getElementById('cfgProgressLabel');
+  var fill = document.getElementById('cfgProgressFill');
+  var pct = Math.round(((idx + 1) / order.length) * 100);
+  if (label) label.textContent = 'Step ' + (idx + 1) + '/' + order.length;
+  if (fill) fill.style.width = pct + '%';
+}
+
+function goNextConfigTab() {
+  var order = getCfgTabOrder();
+  var idx = order.indexOf(cfgCurrentTabId);
+  if (idx < 0) idx = 0;
+  var nextId = order[Math.min(order.length - 1, idx + 1)];
+  var btn = document.querySelector('[onclick*="switchConfigTab(\'' + nextId + '\'"]');
+  if (btn) btn.click();
+}
+
+function goPrevConfigTab() {
+  var order = getCfgTabOrder();
+  var idx = order.indexOf(cfgCurrentTabId);
+  if (idx < 0) idx = 0;
+  var prevId = order[Math.max(0, idx - 1)];
+  var btn = document.querySelector('[onclick*="switchConfigTab(\'' + prevId + '\'"]');
+  if (btn) btn.click();
 }
 
 function loadCfgData(comune, reg) {
@@ -2069,6 +2552,7 @@ function loadCfgData(comune, reg) {
 
 // ── Config tab switch ──
 function switchConfigTab(tabId, btn) {
+  cfgCurrentTabId = tabId;
   document.querySelectorAll('.config-tab-btn').forEach(function(b) {
     b.classList.remove('active');
     b.setAttribute('aria-selected', 'false');
@@ -2097,6 +2581,68 @@ function switchConfigTab(tabId, btn) {
     panel.classList.add('active');
     panel.removeAttribute('hidden');
   }
+  updateCfgProgress();
+}
+
+function getPresetActiveMap(presetId) {
+  var active = SERVICE_PRESETS[presetId] || [];
+  var map = {};
+  SERVIZI.forEach(function(s) {
+    map[s.id] = active.indexOf(s.id) >= 0;
+  });
+  return map;
+}
+
+function previewPresetDiff() {
+  if (!cfgSelectedComune) {
+    showToast('⚠️ Seleziona prima un comune');
+    return;
+  }
+  var presetId = document.getElementById('presetSelect').value;
+  var box = document.getElementById('presetDiffBox');
+  if (!presetId || !box) {
+    if (box) box.textContent = 'Seleziona un preset per visualizzare le differenze.';
+    return;
+  }
+
+  var target = getPresetActiveMap(presetId);
+  var current = config[cfgSelectedComune] || {};
+  var toEnable = [];
+  var toDisable = [];
+
+  SERVIZI.forEach(function(s) {
+    var nowOn = !!current[s.id];
+    if (target[s.id] && !nowOn) toEnable.push(s.nome);
+    if (!target[s.id] && nowOn) toDisable.push(s.nome);
+  });
+
+  box.innerHTML = 'Preset <strong>' + escapeH(presetId) + '</strong> — '
+    + 'da attivare: ' + (toEnable.length ? escapeH(toEnable.join(', ')) : 'nessuno')
+    + ' | da disattivare: ' + (toDisable.length ? escapeH(toDisable.join(', ')) : 'nessuno');
+}
+
+function applyServicePreset() {
+  if (!cfgSelectedComune) {
+    showToast('⚠️ Seleziona prima un comune');
+    return;
+  }
+  var presetId = document.getElementById('presetSelect').value;
+  if (!presetId) {
+    showToast('⚠️ Seleziona un preset');
+    return;
+  }
+
+  var target = getPresetActiveMap(presetId);
+  config[cfgSelectedComune] = target;
+  saveConfig(config);
+  renderCfgServizi(cfgSelectedComune);
+  renderComuni();
+  syncComuneServicesToFirestore(cfgSelectedComune).catch(function(err) {
+    setCloudSyncError(cfgSelectedComune + ':servizi', err);
+  });
+  addAudit('apply-preset', cfgSelectedComune, { preset: presetId });
+  showToast('✅ Preset applicato: ' + presetId);
+  previewPresetDiff();
 }
 
 function setupAdminEnhancements() {
@@ -2254,8 +2800,10 @@ function cfgToggleServizio(serviceId, state) {
   config[cfgSelectedComune][serviceId] = state;
   saveConfig(config);
   syncComuneServicesToFirestore(cfgSelectedComune).catch(function(err) {
+    setCloudSyncError(cfgSelectedComune + ':servizi', err);
     console.error('Sync servizi failed:', err);
   });
+  addAudit('cfg-toggle-service', cfgSelectedComune, { serviceId: serviceId, enabled: !!state });
   updateStats();
 }
 
@@ -2264,8 +2812,10 @@ function cfgSetAllServizi(state) {
   SERVIZI.forEach(function(s) { config[cfgSelectedComune][s.id] = state; });
   saveConfig(config);
   syncComuneServicesToFirestore(cfgSelectedComune).catch(function(err) {
+    setCloudSyncError(cfgSelectedComune + ':servizi', err);
     console.error('Sync servizi failed:', err);
   });
+  addAudit('cfg-set-all-services', cfgSelectedComune, { enabled: !!state });
   renderCfgServizi(cfgSelectedComune);
   updateStats();
   showToast(state ? '✅ Tutti i servizi attivati' : '❌ Tutti i servizi disattivati');
@@ -2379,11 +2929,50 @@ function saveCfgComune() {
   var nome = document.getElementById('cfgSindacoNome').value.trim();
   var cognome = document.getElementById('cfgSindacoCognome').value.trim();
   var email = document.getElementById('cfgSindacoEmail').value.trim();
+  var cap = document.getElementById('cfgSedeCap').value.trim();
+  var pec = document.getElementById('cfgSedePec').value.trim();
+  var piva = document.getElementById('cfgPartitaIva').value.trim();
+  var logoUrl = document.getElementById('cfgLogoUrl').value.trim();
 
   if (!nome || !cognome) {
     showToast('⚠️ Nome e Cognome del Sindaco sono obbligatori');
     switchConfigTab('sindaco', document.querySelector('.config-tab-btn'));
     return;
+  }
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('⚠️ Email istituzionale non valida');
+    switchConfigTab('sindaco', document.querySelector('[onclick*="switchConfigTab(\'sindaco\'"]'));
+    return;
+  }
+
+  if (cap && !/^\d{5}$/.test(cap)) {
+    showToast('⚠️ CAP non valido (richieste 5 cifre)');
+    switchConfigTab('sede', document.querySelector('[onclick*="switchConfigTab(\'sede\'"]'));
+    return;
+  }
+
+  if (pec && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pec)) {
+    showToast('⚠️ PEC non valida');
+    switchConfigTab('sede', document.querySelector('[onclick*="switchConfigTab(\'sede\'"]'));
+    return;
+  }
+
+  if (piva && !/^\d{11}$/.test(piva)) {
+    showToast('⚠️ Partita IVA non valida (11 cifre)');
+    switchConfigTab('sede', document.querySelector('[onclick*="switchConfigTab(\'sede\'"]'));
+    return;
+  }
+
+  if (logoUrl) {
+    try {
+      var parsedUrl = new URL(logoUrl);
+      if (!/^https?:$/.test(parsedUrl.protocol)) throw new Error('invalid protocol');
+    } catch (e) {
+      showToast('⚠️ URL logo non valido');
+      switchConfigTab('portale', document.querySelector('[onclick*="switchConfigTab(\'portale\'"]'));
+      return;
+    }
   }
 
   // Read current sportello data from inputs
@@ -2490,10 +3079,12 @@ function saveCfgComune() {
 
   allReg[cfgSelectedComune] = cfgData;
   localStorage.setItem('civicos_comuni_config', JSON.stringify(allReg));
+  pushCfgSnapshot(cfgSelectedComune, cfgData);
 
   // Sync cloud config per comunicazioni e app/portale comune
   syncComuneConfigToFirestore(cfgSelectedComune, cfgData)
     .catch(function(err) {
+      setCloudSyncError(cfgSelectedComune + ':config', err);
       console.error('Sync Firestore config failed:', err);
       showToast('⚠️ Config salvata in locale, sync cloud non riuscita');
     });
@@ -2521,14 +3112,120 @@ function saveCfgComune() {
   localStorage.setItem(utentiKey, JSON.stringify(utenti));
 
   showToast('💾 Configurazione di ' + cfgSelectedComune + ' salvata!');
+  addAudit('save-config', cfgSelectedComune, { completezza: getConfigCompleteness(cfgSelectedComune).score });
   document.getElementById('cfgStatusBadge').innerHTML = '<span class="config-status-badge configured">✅ Configurato</span>';
   populateCfgComuneSelect();
+  renderCfgHistory();
   updateStats();
+}
+
+function getCfgHistoryKey(comune) {
+  return 'civicos_cfg_history_' + comune;
+}
+
+function pushCfgSnapshot(comune, cfgData) {
+  if (!comune) return;
+  var key = getCfgHistoryKey(comune);
+  var snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem(key) || '[]');
+  } catch (e) {
+    snapshots = [];
+  }
+  snapshots.unshift({ at: new Date().toISOString(), data: cfgData });
+  if (snapshots.length > 12) snapshots = snapshots.slice(0, 12);
+  localStorage.setItem(key, JSON.stringify(snapshots));
+}
+
+function renderCfgHistory() {
+  var el = document.getElementById('cfgHistoryList');
+  if (!el || !cfgSelectedComune) return;
+  var key = getCfgHistoryKey(cfgSelectedComune);
+  var snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem(key) || '[]');
+  } catch (e) {
+    snapshots = [];
+  }
+
+  if (!snapshots.length) {
+    el.innerHTML = '<div class="history-item">Nessuna versione disponibile</div>';
+    return;
+  }
+
+  el.innerHTML = snapshots.map(function(s, i) {
+    return '<div class="history-item">'
+      + '<span>Versione ' + (snapshots.length - i) + ' • ' + escapeH(formatDateTime(s.at)) + '</span>'
+      + '<button class="btn-all-on" style="padding:4px 8px;border:none;border-radius:8px;cursor:pointer;" onclick="restoreCfgVersion(' + i + ')">Ripristina</button>'
+      + '</div>';
+  }).join('');
+}
+
+function restoreCfgVersion(idx) {
+  if (!cfgSelectedComune) return;
+  var key = getCfgHistoryKey(cfgSelectedComune);
+  var snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem(key) || '[]');
+  } catch (e) {}
+  if (!snapshots[idx]) return;
+
+  var allReg = getLocalRegisteredComuni();
+  allReg[cfgSelectedComune] = snapshots[idx].data;
+  localStorage.setItem('civicos_comuni_config', JSON.stringify(allReg));
+  loadCfgData(cfgSelectedComune, allReg[cfgSelectedComune]);
+  addAudit('restore-config-version', cfgSelectedComune, { index: idx });
+  showToast('⏪ Versione ripristinata');
+  renderComuni();
+  renderCfgHistory();
+}
+
+function restoreLastCfgVersion() {
+  restoreCfgVersion(0);
+}
+
+function exportCfgComune() {
+  if (!cfgSelectedComune) return;
+  var reg = getAllRegisteredComuni()[cfgSelectedComune];
+  if (!reg) {
+    showToast('⚠️ Nessuna configurazione da esportare');
+    return;
+  }
+  var payload = JSON.stringify(reg, null, 2);
+  navigator.clipboard.writeText(payload)
+    .then(function() {
+      addAudit('export-config', cfgSelectedComune, {});
+      showToast('📤 JSON copiato negli appunti');
+    })
+    .catch(function() {
+      showToast('⚠️ Copia non riuscita (clipboard non disponibile)');
+    });
+}
+
+function importCfgComune() {
+  if (!cfgSelectedComune) return;
+  var raw = prompt('Incolla il JSON configurazione da importare');
+  if (!raw) return;
+  try {
+    var parsed = JSON.parse(raw);
+    var allReg = getLocalRegisteredComuni();
+    allReg[cfgSelectedComune] = parsed;
+    localStorage.setItem('civicos_comuni_config', JSON.stringify(allReg));
+    loadCfgData(cfgSelectedComune, parsed);
+    pushCfgSnapshot(cfgSelectedComune, parsed);
+    addAudit('import-config', cfgSelectedComune, {});
+    showToast('📥 Configurazione importata');
+    renderComuni();
+    renderCfgHistory();
+  } catch (e) {
+    showToast('⚠️ JSON non valido');
+  }
 }
 
 function resetCfgForm() {
   if (!cfgSelectedComune) return;
   onComuneSelected();
+  addAudit('reset-config-form', cfgSelectedComune, {});
   showToast('🔄 Form ripristinato');
 }
 
@@ -2542,6 +3239,7 @@ function deleteCfgComune() {
   localStorage.removeItem('civicos_utenti_' + cfgSelectedComune);
 
   showToast('🗑️ Configurazione di ' + cfgSelectedComune + ' eliminata');
+  addAudit('delete-config', cfgSelectedComune, {});
   document.getElementById('cfgComuneSelect').value = '';
   onComuneSelected();
   populateCfgComuneSelect();
@@ -2550,8 +3248,13 @@ function deleteCfgComune() {
 
 // ── Init ──
 setupAdminEnhancements();
+var roleEl = document.getElementById('adminRole');
+if (roleEl) roleEl.value = getAdminRole();
+applyRolePermissions();
 renderComuni();
 preloadCloudComuni();
+renderDiagnosticLog();
+updateCfgProgress();
 </script>
 </body>
 </html>
