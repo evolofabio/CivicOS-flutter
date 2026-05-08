@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CivicOS — Raccolta differenziata intelligente per i comuni</title>
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ─── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --blue:    #0A84FF;
+  --cyan:    #22C7CF;
+  --purple:  #1F8A70;
+  --indigo:  #2A5DB0;
+  --green:   #30D158;
+  --orange:  #F59E0B;
+  --dark:    #000000;
+  --dark1:   #0A0A0F;
+  --dark2:   #111118;
+  --dark3:   #1C1C2A;
+  --glass:   rgba(255,255,255,0.05);
+  --glass-border: rgba(255,255,255,0.09);
+  --text:    #F5F5F7;
+  --text2:   #A1A1AA;
+  --text3:   #6B6B78;
+  --r-sm:    12px;
+  --r-md:    20px;
+  --r-lg:    28px;
+  --r-xl:    40px;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--dark1);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 3px; }
+
+/* ─── Selection ─────────────────────────────────────────── */
+::selection { background: rgba(10,132,255,.35); color: #fff; }
+
+/* ─── Nav ───────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 999;
+  padding: 0 40px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background .35s ease, backdrop-filter .35s ease, border-bottom .35s ease;
+}
+nav.scrolled {
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.nav-logo img {
+  height: 34px;
+  width: auto;
+  filter: brightness(1.1);
+}
+.nav-logo span {
+  font-family: 'Sora', 'Manrope', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  text-decoration: none;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  background: var(--blue);
+  color: #fff !important;
+  padding: 9px 22px;
+  border-radius: 980px;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  transition: opacity .2s, transform .2s !important;
+}
+.nav-cta:hover { opacity: .88; transform: scale(1.03); }
+
+/* ─── Hero ──────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 140px 40px 100px;
+  overflow: hidden;
+}
+
+/* Mesh gradient background */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(10,132,255,.28) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 50% at 80% 80%, rgba(48,209,88,.18) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 40% at 10% 90%, rgba(50,210,245,.15) 0%, transparent 50%),
+              var(--dark1);
+}
+
+/* Animated orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .55;
+  animation: floatOrb var(--dur, 12s) ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+.orb-1 { width: 600px; height: 600px; background: radial-gradient(circle, #0A84FF 0%, transparent 70%); top: -200px; left: -200px; --dur: 14s; }
+.orb-2 { width: 500px; height: 500px; background: radial-gradient(circle, #30D158 0%, transparent 70%); bottom: -150px; right: -150px; --dur: 11s; animation-direction: alternate-reverse; }
+.orb-3 { width: 400px; height: 400px; background: radial-gradient(circle, #32D2F5 0%, transparent 70%); top: 40%; left: 60%; --dur: 16s; opacity: .3; }
+
+@keyframes floatOrb {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, 30px) scale(1.08); }
+}
+
+/* Grid noise overlay */
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 30%, transparent 80%);
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 860px; }
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(10,132,255,.15);
+  border: 1px solid rgba(10,132,255,.35);
+  color: #60AAFF;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  padding: 7px 18px;
+  border-radius: 980px;
+  margin-bottom: 36px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fadeUp .8s ease both;
+}
+.hero-badge .dot {
+  width: 7px; height: 7px;
+  background: var(--blue);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(1.4); }
+}
+
+.hero h1 {
+  font-family: 'Sora', 'Manrope', sans-serif;
+  font-size: clamp(52px, 8vw, 88px);
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: -3px;
+  margin-bottom: 28px;
+  animation: fadeUp .9s .1s ease both;
+}
+.hero h1 .line-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #A0CFFF 35%, #32D2F5 65%, #30D158 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: clamp(18px, 2.4vw, 22px);
+  font-weight: 400;
+  color: var(--text2);
+  max-width: 640px;
+  margin: 0 auto 50px;
+  line-height: 1.6;
+  animation: fadeUp 1s .2s ease both;
+}
+.hero-sub strong { color: var(--text); font-weight: 600; }
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 1s .3s ease both;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 16px 34px;
+  border-radius: 980px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease, opacity .2s;
+  box-shadow: 0 0 40px rgba(10,132,255,.35), 0 4px 20px rgba(0,0,0,.3);
+}
+.btn-primary:hover {
+  transform: scale(1.04) translateY(-2px);
+  box-shadow: 0 0 60px rgba(10,132,255,.55), 0 8px 30px rgba(0,0,0,.4);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgba(34, 199, 207, 0.6);
+  outline-offset: 2px;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.07);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 16px 34px;
+  border-radius: 980px;
+  border: 1px solid rgba(255,255,255,.12);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .2s, transform .25s cubic-bezier(.34,1.56,.64,1), border-color .2s;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.2);
+  transform: scale(1.03) translateY(-2px);
+}
+
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  animation: fadeUp 1s .6s ease both;
+}
+.scroll-line {
+  width: 1px;
+  height: 52px;
+  background: linear-gradient(to bottom, rgba(255,255,255,.6), transparent);
+  margin: 0 auto;
+  animation: scrollDown 2s ease-in-out infinite;
+}
+@keyframes scrollDown {
+  0%, 100% { opacity: .7; transform: scaleY(1); }
+  50% { opacity: .2; transform: scaleY(.6); }
+}
+
+/* ─── Stats ─────────────────────────────────────────────── */
+.stats {
+  position: relative;
+  z-index: 2;
+  padding: 60px 40px;
+  background: linear-gradient(180deg, transparent 0%, rgba(10,132,255,.04) 50%, transparent 100%);
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+}
+.stats-grid {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.stat-item {
+  text-align: center;
+  padding: 20px;
+}
+.stat-num {
+  font-size: clamp(36px, 5vw, 52px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, #FFFFFF 0%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.stat-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: .3px;
+}
+
+/* ─── Section base ──────────────────────────────────────── */
+section { padding: 120px 40px; }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+
+.section-eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.eyebrow-blue   { color: var(--blue);   }
+.eyebrow-purple { color: var(--purple); }
+.eyebrow-cyan   { color: var(--cyan);   }
+.eyebrow-green  { color: var(--green);  }
+
+.section-title {
+  font-family: 'Sora', 'Manrope', sans-serif;
+  font-size: clamp(36px, 5vw, 54px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+.section-desc {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text2);
+  max-width: 560px;
+  line-height: 1.65;
+}
+
+/* ─── Products ──────────────────────────────────────────── */
+.products { background: var(--dark2); }
+.products-header { text-align: center; margin-bottom: 80px; }
+.products-header .section-desc { margin: 0 auto; }
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.product-card {
+  position: relative;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xl);
+  padding: 44px 36px 40px;
+  overflow: hidden;
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1), border-color .3s, box-shadow .4s;
+  cursor: default;
+}
+.product-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--card-glow, rgba(10,132,255,.12)) 0%, transparent 70%);
+  pointer-events: none;
+  transition: opacity .4s;
+  opacity: 0;
+}
+.product-card:hover { transform: translateY(-8px); border-color: rgba(255,255,255,.18); }
+.product-card:hover::before { opacity: 1; }
+.product-card:hover .product-icon-wrap { box-shadow: 0 0 30px var(--icon-glow, rgba(10,132,255,.4)); }
+
+.product-card--app    { --card-glow: rgba(10,132,255,.15);  --icon-glow: rgba(10,132,255,.5); }
+.product-card--comune { --card-glow: rgba(50,210,245,.12);  --icon-glow: rgba(50,210,245,.45); }
+.product-card--admin  { --card-glow: rgba(255,159,10,.13);  --icon-glow: rgba(255,159,10,.45); }
+
+.product-icon-wrap {
+  width: 64px; height: 64px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 28px;
+  transition: box-shadow .4s;
+}
+.product-card--app    .product-icon-wrap { background: linear-gradient(135deg, #0A84FF, #32D2F5); }
+.product-card--comune .product-icon-wrap { background: linear-gradient(135deg, #32D2F5, #30D158); }
+.product-card--admin  .product-icon-wrap { background: linear-gradient(135deg, #FF9F0A, #0A84FF); }
+
+.product-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 980px;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+.product-card--app    .product-tag { background: rgba(10,132,255,.18);  color: #60AAFF; }
+.product-card--comune .product-tag { background: rgba(50,210,245,.18);  color: #5ADEFF; }
+.product-card--admin  .product-tag { background: rgba(255,159,10,.2); color: #FFB84D; }
+
+.product-card h3 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -.5px;
+  margin-bottom: 14px;
+}
+.product-card p {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.65;
+  margin-bottom: 32px;
+}
+.product-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.product-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text2);
+  font-weight: 500;
+}
+.feature-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.product-card--app    .feature-dot { background: var(--blue);   }
+.product-card--comune .feature-dot { background: var(--cyan);   }
+.product-card--admin  .feature-dot { background: var(--orange); }
+
+/* ─── Feature Split ─────────────────────────────────────── */
+.feature-split { background: var(--dark1); }
+.split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  margin-bottom: 120px;
+}
+.split-row:last-child { margin-bottom: 0; }
+.split-row.reverse .split-visual { order: -1; }
+
+.split-text .section-eyebrow { margin-bottom: 14px; }
+.split-text .section-title { font-size: clamp(28px, 3.5vw, 42px); margin-bottom: 18px; }
+.split-text .section-desc { font-size: 16px; margin-bottom: 28px; }
+
+.split-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.chip {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 980px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text2);
+  transition: background .2s, color .2s;
+}
+.chip:hover { background: rgba(255,255,255,.1); color: var(--text); }
+
+.split-visual {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background: var(--dark3);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .5s cubic-bezier(.34,1.2,.64,1);
+}
+.split-visual:hover { transform: scale(1.02); }
+
+/* UI Mockup built in pure CSS */
+.mockup-window {
+  width: 85%;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.mockup-bar {
+  background: rgba(255,255,255,.06);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+.mockup-dot-r { background: #FF5F57; }
+.mockup-dot-y { background: #FEBC2E; }
+.mockup-dot-g { background: #28C840; }
+.mockup-body { padding: 20px; }
+
+.mockup-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+.mockup-avatar {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.mockup-lines { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.mockup-line {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.12);
+}
+.mockup-line.short { width: 55%; }
+.mockup-line.xshort { width: 35%; }
+
+.mockup-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+.mockup-card-mini {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mockup-card-mini .m-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+}
+.mockup-card-mini .m-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Glow ring */
+.split-visual::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(10,132,255,.3) 0%, rgba(48,209,88,.22) 50%, transparent 100%);
+  opacity: 0;
+  transition: opacity .4s;
+  pointer-events: none;
+}
+.split-visual:hover::after { opacity: 1; }
+
+/* ─── Modules Grid ──────────────────────────────────────── */
+.modules { background: var(--dark2); }
+.modules-header { text-align: center; margin-bottom: 72px; }
+.modules-header .section-desc { margin: 0 auto; }
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.module-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), border-color .3s, background .3s;
+}
+.module-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--mod-accent, var(--blue)), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.module-card:hover { transform: translateY(-5px); background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.14); }
+.module-card:hover::after { opacity: 1; }
+
+.module-icon {
+  font-size: 32px;
+  margin-bottom: 18px;
+  display: block;
+}
+.module-card h4 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+  margin-bottom: 10px;
+}
+.module-card p {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* ─── Highlight Banner ──────────────────────────────────── */
+.highlight {
+  background: var(--dark1);
+  padding: 100px 40px;
+}
+.highlight-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, rgba(10,132,255,.1) 0%, rgba(48,209,88,.08) 50%, rgba(50,210,245,.07) 100%);
+  border: 1px solid rgba(10,132,255,.22);
+  border-radius: var(--r-xl);
+  padding: 80px 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.highlight-inner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 300px;
+  background: radial-gradient(ellipse, rgba(10,132,255,.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.highlight-inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.highlight h2 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+.highlight h2 span {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 45%, var(--green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.highlight p {
+  font-size: 18px;
+  color: var(--text2);
+  max-width: 560px;
+  margin: 0 auto 44px;
+  line-height: 1.65;
+  position: relative;
+  z-index: 1;
+}
+.highlight-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Tech Stack ────────────────────────────────────────── */
+.tech { background: var(--dark2); padding: 80px 40px; }
+.tech-inner { max-width: 1100px; margin: 0 auto; text-align: center; }
+.tech-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 36px;
+}
+.tech-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+.tech-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 980px;
+  padding: 12px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text2);
+  transition: background .2s, color .2s, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.tech-pill:hover { background: rgba(255,255,255,.1); color: var(--text); transform: scale(1.06); }
+.tech-pill .tp-icon { font-size: 20px; }
+
+/* ─── Footer ────────────────────────────────────────────── */
+footer {
+  background: var(--dark);
+  border-top: 1px solid var(--glass-border);
+  padding: 60px 40px 36px;
+}
+.footer-inner { max-width: 1100px; margin: 0 auto; }
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 48px;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.footer-brand { max-width: 300px; }
+.footer-brand img { height: 32px; margin-bottom: 14px; filter: brightness(1.1); }
+.footer-brand p {
+  font-size: 14px;
+  color: var(--text3);
+  line-height: 1.7;
+}
+.footer-cols {
+  display: flex;
+  gap: 60px;
+  flex-wrap: wrap;
+}
+.footer-col h5 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 18px;
+}
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-col a {
+  font-size: 14px;
+  color: var(--text2);
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-col a:hover { color: var(--text); }
+.footer-bottom {
+  border-top: 1px solid var(--glass-border);
+  padding-top: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-bottom span {
+  font-size: 13px;
+  color: var(--text3);
+}
+.footer-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text3);
+}
+.footer-badge .heart { color: var(--blue); }
+
+/* ─── Scroll Reveal ─────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(34px);
+  transition: opacity .75s ease, transform .75s cubic-bezier(.22,.61,.36,1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+.reveal-delay-1 { transition-delay: .1s; }
+.reveal-delay-2 { transition-delay: .2s; }
+.reveal-delay-3 { transition-delay: .3s; }
+.reveal-delay-4 { transition-delay: .4s; }
+.reveal-delay-5 { transition-delay: .5s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .products-grid, .modules-grid { grid-template-columns: 1fr 1fr; }
+  .split-row { grid-template-columns: 1fr; gap: 48px; }
+  .split-row.reverse .split-visual { order: unset; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  nav .nav-links { display: none; }
+}
+@media (max-width: 600px) {
+  .products-grid, .modules-grid { grid-template-columns: 1fr; }
+  nav { padding: 0 24px; }
+  section { padding: 80px 24px; }
+  .hero { padding: 120px 24px 80px; }
+  .stats { padding: 48px 24px; }
+  .highlight-inner { padding: 48px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Nav ─────────────────────────────────────────────── -->
+<nav id="navbar">
+  <a class="nav-logo" href="#">
+    <img src="assets/CivicOS.png" alt="CivicOS Logo" />
+  </a>
+  <ul class="nav-links">
+    <li><a href="#prodotti">Ecosistema</a></li>
+    <li><a href="#funzionalita">Flusso raccolta</a></li>
+    <li><a href="#moduli">Operatività</a></li>
+    <li><a href="#tech">Impatto</a></li>
+    <li><a href="#contatti" class="nav-cta">Richiedi demo</a></li>
+  </ul>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Raccolta differenziata digitale per comuni italiani
+    </div>
+    <h1>
+      Meno rifiuti in strada.<br />
+      <span class="line-gradient">Più raccolta differenziata</span><br />
+      ogni giorno.
+    </h1>
+    <p class="hero-sub">
+      <strong>CivicOS</strong> digitalizza il ciclo di raccolta: i cittadini inviano richieste corrette, il comune le processa in tempo reale e gli operatori intervengono prima che si creino accumuli nelle strade cittadine.
+    </p>
+    <div class="hero-actions">
+      <a href="#prodotti" class="btn-primary">
+        Vedi come funziona
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#contatti" class="btn-ghost">
+        Richiedi una demo
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint">
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ── Stats ───────────────────────────────────────────── -->
+<div class="stats">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <span class="stat-num" data-target="3">0</span>
+      <span class="stat-label">Canali coordinati</span>
+    </div>
+    <div class="stat-item reveal reveal-delay-1">
+      <span class="stat-num" data-target="1">0</span>
+      <span class="stat-label">Flusso operativo unico</span>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <span class="stat-num" data-target="24" data-suffix="h">0h</span>
+      <span class="stat-label">Presa in carico continua</span>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
+      <span class="stat-num" data-target="0" data-text="Real&#8209;time">Real&#8209;time</span>
+      <span class="stat-label">Aggiornamento richieste</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Products ────────────────────────────────────────── -->
+<section class="products" id="prodotti">
+  <div class="section-inner">
+    <div class="products-header">
+      <div class="section-eyebrow eyebrow-blue reveal">Un obiettivo chiaro</div>
+      <h2 class="section-title reveal reveal-delay-1">Raccolta differenziata senza interruzioni</h2>
+      <p class="section-desc reveal reveal-delay-2">Cittadini, operatori e amministrazione lavorano sullo stesso flusso digitale per ridurre disservizi, prevenire accumuli e migliorare la pulizia urbana.</p>
+    </div>
+    <div class="products-grid">
+
+      <div class="product-card product-card--app reveal">
+        <div class="product-icon-wrap">📱</div>
+        <span class="product-tag">Cittadini</span>
+        <h3>App Cittadino</h3>
+        <p>Ogni cittadino sa cosa conferire, quando e dove. Le richieste vengono inviate in modo strutturato per accelerare l'intervento del comune.</p>
+        <ul class="product-features">
+          <li><span class="feature-dot"></span>Segnalazioni accumuli con foto e posizione</li>
+          <li><span class="feature-dot"></span>Prenotazione ritiro ingombranti</li>
+          <li><span class="feature-dot"></span>Promemoria del calendario differenziata</li>
+          <li><span class="feature-dot"></span>Stato richieste sempre visibile</li>
+          <li><span class="feature-dot"></span>Notifiche push su interventi e avvisi</li>
+        </ul>
+      </div>
+
+      <div class="product-card product-card--comune reveal reveal-delay-1">
+        <div class="product-icon-wrap">🏛️</div>
+        <span class="product-tag">Operatori</span>
+        <h3>Portale Operativo</h3>
+        <p>La centrale di controllo comunale per gestire il servizio di raccolta in tempo reale, assegnare priorità e monitorare ogni richiesta.</p>
+        <ul class="product-features">
+          <li><span class="feature-dot"></span>Coda segnalazioni e prenotazioni live</li>
+          <li><span class="feature-dot"></span>Organizzazione giri e passaggi</li>
+          <li><span class="feature-dot"></span>Assegnazione interventi a squadre/mezzi</li>
+          <li><span class="feature-dot"></span>Avvisi mirati per zone e quartieri</li>
+          <li><span class="feature-dot"></span>Storico completo delle lavorazioni</li>
+        </ul>
+      </div>
+
+      <div class="product-card product-card--admin reveal reveal-delay-2">
+        <div class="product-icon-wrap">🔐</div>
+        <span class="product-tag">Azienda</span>
+        <h3>Portale Amministrazione</h3>
+        <p>Governance multi-comune, standard di processo e controllo KPI per alzare la qualità della raccolta differenziata nel tempo.</p>
+        <ul class="product-features">
+          <li><span class="feature-dot"></span>Standardizzazione processi operativi</li>
+          <li><span class="feature-dot"></span>Gestione utenti, ruoli e responsabilità</li>
+          <li><span class="feature-dot"></span>Configurazione servizi per territorio</li>
+          <li><span class="feature-dot"></span>Report KPI su tempi e volumi</li>
+          <li><span class="feature-dot"></span>Multi-tenant sicuro e isolato</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Feature Split ────────────────────────────────────── -->
+<section class="feature-split" id="funzionalita">
+  <div class="section-inner">
+
+    <!-- Row 1 -->
+    <div class="split-row">
+      <div class="split-text">
+        <div class="section-eyebrow eyebrow-blue reveal">Partenza dal cittadino</div>
+        <h2 class="section-title reveal reveal-delay-1">Richieste corrette,<br />interventi piu veloci.</h2>
+        <p class="section-desc reveal reveal-delay-2">Con un percorso guidato, il cittadino invia segnalazioni e prenotazioni complete. Meno errori in ingresso significa meno tempi morti e meno rifiuti lasciati in strada.</p>
+        <div class="split-chips reveal reveal-delay-3">
+          <span class="chip">Segnalazioni geolocalizzate</span>
+          <span class="chip">Ritiro ingombranti</span>
+          <span class="chip">Calendario differenziata</span>
+          <span class="chip">Notifiche mirate</span>
+          <span class="chip">Storico richieste</span>
+        </div>
+      </div>
+      <div class="split-visual reveal reveal-delay-2">
+        <div class="mockup-window">
+          <div class="mockup-bar">
+            <span class="mockup-dot mockup-dot-r"></span>
+            <span class="mockup-dot mockup-dot-y"></span>
+            <span class="mockup-dot mockup-dot-g"></span>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-row">
+              <div class="mockup-avatar" style="background:linear-gradient(135deg,#0A84FF,#32D2F5)"></div>
+              <div class="mockup-lines">
+                <div class="mockup-line"></div>
+                <div class="mockup-line short"></div>
+              </div>
+            </div>
+            <div class="mockup-cards">
+              <div class="mockup-card-mini">
+                <div class="m-icon" style="background:linear-gradient(135deg,#0A84FF,#32D2F5)"></div>
+                <div class="m-txt">
+                  <div class="mockup-line"></div>
+                  <div class="mockup-line xshort"></div>
+                </div>
+              </div>
+              <div class="mockup-card-mini">
+                <div class="m-icon" style="background:linear-gradient(135deg,#30D158,#32D2F5)"></div>
+                <div class="m-txt">
+                  <div class="mockup-line"></div>
+                  <div class="mockup-line xshort"></div>
+                </div>
+              </div>
+              <div class="mockup-card-mini">
+                <div class="m-icon" style="background:linear-gradient(135deg,#FF9F0A,#FF6B35)"></div>
+                <div class="m-txt">
+                  <div class="mockup-line"></div>
+                  <div class="mockup-line xshort"></div>
+                </div>
+              </div>
+              <div class="mockup-card-mini">
+                <div class="m-icon" style="background:linear-gradient(135deg,#BF5AF2,#5E5CE6)"></div>
+                <div class="m-txt">
+                  <div class="mockup-line"></div>
+                  <div class="mockup-line xshort"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="split-row reverse">
+      <div class="split-text">
+        <div class="section-eyebrow eyebrow-cyan reveal">Controllo operativo</div>
+        <h2 class="section-title reveal reveal-delay-1">Le squadre lavorano<br />su priorita reali.</h2>
+        <p class="section-desc reveal reveal-delay-2">Il portale riunisce richieste, disponibilita mezzi e stato interventi. Gli operatori vedono dove agire prima, riducendo accumuli e migliorando la continuita del servizio.</p>
+        <div class="split-chips reveal reveal-delay-3">
+          <span class="chip">Dashboard live</span>
+          <span class="chip">Mezzi e squadre</span>
+          <span class="chip">Code prioritarie</span>
+          <span class="chip">Comunicazioni di zona</span>
+          <span class="chip">Tracciamento stato</span>
+        </div>
+      </div>
+      <div class="split-visual reveal reveal-delay-2">
+        <div class="mockup-window">
+          <div class="mockup-bar">
+            <span class="mockup-dot mockup-dot-r"></span>
+            <span class="mockup-dot mockup-dot-y"></span>
+            <span class="mockup-dot mockup-dot-g"></span>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-row" style="margin-bottom:18px">
+              <div class="mockup-lines">
+                <div class="mockup-line" style="width:70%;height:12px;border-radius:6px;background:linear-gradient(90deg,rgba(50,210,245,.4),rgba(10,132,255,.2))"></div>
+                <div class="mockup-line short"></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:12px;background:rgba(50,210,245,.07);border:1px solid rgba(50,210,245,.15);border-radius:10px;padding:12px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#30D158;flex-shrink:0"></div>
+                <div style="flex:1"><div class="mockup-line" style="width:80%"></div></div>
+                <div class="mockup-line xshort"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;background:rgba(255,159,10,.07);border:1px solid rgba(255,159,10,.15);border-radius:10px;padding:12px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#FF9F0A;flex-shrink:0"></div>
+                <div style="flex:1"><div class="mockup-line" style="width:65%"></div></div>
+                <div class="mockup-line xshort"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;background:rgba(191,90,242,.07);border:1px solid rgba(191,90,242,.15);border-radius:10px;padding:12px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#BF5AF2;flex-shrink:0"></div>
+                <div style="flex:1"><div class="mockup-line" style="width:55%"></div></div>
+                <div class="mockup-line xshort"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="split-row">
+      <div class="split-text">
+        <div class="section-eyebrow eyebrow-green reveal">Visione strategica</div>
+        <h2 class="section-title reveal reveal-delay-1">Dati utili per<br />migliorare la raccolta.</h2>
+        <p class="section-desc reveal reveal-delay-2">Ogni comune resta isolato e sicuro, ma con un modello operativo comune: analisi dei tempi di presa in carico, aree critiche e performance per pianificare miglioramenti concreti.</p>
+        <div class="split-chips reveal reveal-delay-3">
+          <span class="chip">KPI di servizio</span>
+          <span class="chip">Storico interventi</span>
+          <span class="chip">Analisi aree critiche</span>
+          <span class="chip">Accessi per ruolo</span>
+        </div>
+      </div>
+      <div class="split-visual reveal reveal-delay-2">
+        <div class="mockup-window">
+          <div class="mockup-bar">
+            <span class="mockup-dot mockup-dot-r"></span>
+            <span class="mockup-dot mockup-dot-y"></span>
+            <span class="mockup-dot mockup-dot-g"></span>
+          </div>
+          <div class="mockup-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div style="background:linear-gradient(135deg,rgba(10,132,255,.15),rgba(10,132,255,.05));border:1px solid rgba(10,132,255,.2);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:22px;font-weight:800;color:#60AAFF;letter-spacing:-1px;margin-bottom:4px">24</div>
+                <div class="mockup-line xshort" style="margin:0 auto"></div>
+              </div>
+              <div style="background:linear-gradient(135deg,rgba(48,209,88,.15),rgba(48,209,88,.05));border:1px solid rgba(48,209,88,.2);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:22px;font-weight:800;color:#40D970;letter-spacing:-1px;margin-bottom:4px">97%</div>
+                <div class="mockup-line xshort" style="margin:0 auto"></div>
+              </div>
+              <div style="background:linear-gradient(135deg,rgba(191,90,242,.15),rgba(191,90,242,.05));border:1px solid rgba(191,90,242,.2);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:22px;font-weight:800;color:#D890FF;letter-spacing:-1px;margin-bottom:4px">12</div>
+                <div class="mockup-line xshort" style="margin:0 auto"></div>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#0A84FF,#32D2F5);flex-shrink:0"></div>
+                <div style="flex:1"><div class="mockup-line" style="width:75%"></div></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#30D158"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#BF5AF2,#5E5CE6);flex-shrink:0"></div>
+                <div style="flex:1"><div class="mockup-line" style="width:60%"></div></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#30D158"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#FF9F0A,#FF6B35);flex-shrink:0"></div>
+                <div style="flex:1"><div class="mockup-line" style="width:50%"></div></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#FF9F0A"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Modules Grid ─────────────────────────────────────── -->
+<section class="modules" id="moduli">
+  <div class="section-inner">
+    <div class="modules-header">
+      <div class="section-eyebrow eyebrow-green reveal">Operativita quotidiana</div>
+      <h2 class="section-title reveal reveal-delay-1">Moduli pensati per la raccolta<br />differenziata sul territorio.</h2>
+      <p class="section-desc reveal reveal-delay-2">Ogni funzione risolve un passaggio concreto del servizio: dalla segnalazione del cittadino alla chiusura intervento, senza passaggi persi.</p>
+    </div>
+    <div class="modules-grid">
+      <div class="module-card reveal" style="--mod-accent: var(--blue)">
+        <span class="module-icon">🚨</span>
+        <h4>Segnalazioni accumuli</h4>
+        <p>Segnalazioni con foto e geolocalizzazione per identificare rapidamente i punti critici e intervenire prima che il problema cresca.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-1" style="--mod-accent: var(--cyan)">
+        <span class="module-icon">📅</span>
+        <h4>Ritiro ingombranti</h4>
+        <p>Prenotazione digitale del ritiro con stato avanzamento e conferma, per evitare abbandoni su strada e ottimizzare i passaggi.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-2" style="--mod-accent: var(--green)">
+        <span class="module-icon">📢</span>
+        <h4>Comunicazioni di servizio</h4>
+        <p>Avvisi puntuali su variazioni del calendario, sospensioni e recuperi raccolta, inviati in tempo reale ai cittadini coinvolti.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-3" style="--mod-accent: var(--orange)">
+        <span class="module-icon">🚛</span>
+        <h4>Mezzi e squadre</h4>
+        <p>Coordinamento operativo di veicoli e squadre sul territorio con visibilita centralizzata delle attivita giornaliere.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-1" style="--mod-accent: var(--blue)">
+        <span class="module-icon">💧</span>
+        <h4>Cisterne</h4>
+        <p>Gestione emergenze idriche e interventi collegati, mantenendo un quadro completo dei servizi ambientali comunali.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-2" style="--mod-accent: var(--purple)">
+        <span class="module-icon">🗓️</span>
+        <h4>Calendario differenziata</h4>
+        <p>Calendario chiaro per i cittadini e aggiornabile dal comune, con regole di conferimento sempre accessibili.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-3" style="--mod-accent: var(--cyan)">
+        <span class="module-icon">⏰</span>
+        <h4>Scadenze</h4>
+        <p>Scadenziario operativo per pianificare attivita ricorrenti e prevenire ritardi nella gestione del servizio di raccolta.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-1" style="--mod-accent: var(--green)">
+        <span class="module-icon">🏢</span>
+        <h4>Aziende partner</h4>
+        <p>Gestione anagrafiche e referenti di aziende coinvolte nel servizio, con flussi piu chiari tra comune e operatori esterni.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-2" style="--mod-accent: var(--orange)">
+        <span class="module-icon">👥</span>
+        <h4>Utenti &amp; Permessi</h4>
+        <p>Ruoli chiari per ogni operatore, accessi sicuri e responsabilita definite lungo tutto il processo di raccolta.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Highlight ────────────────────────────────────────── -->
+<section class="highlight" id="contatti">
+  <div class="highlight-inner">
+    <h2 class="reveal">Pronto a <span>ridurre gli accumuli<br />e aumentare la differenziata</span>?</h2>
+    <p class="reveal reveal-delay-1">Attiva CivicOS per trasformare la raccolta in un processo digitale, continuo e misurabile: meno disservizi, piu pulizia urbana, piu fiducia dei cittadini.</p>
+    <div class="highlight-actions reveal reveal-delay-2">
+      <a href="mailto:info@civicos.it" class="btn-primary">
+        Contattaci ora
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#funzionalita" class="btn-ghost">Vedi il flusso operativo</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Tech Stack ───────────────────────────────────────── -->
+<div class="tech" id="tech">
+  <div class="tech-inner">
+    <p class="tech-label reveal">Infrastruttura affidabile per servizi ambientali comunali</p>
+    <div class="tech-pills">
+      <div class="tech-pill reveal reveal-delay-1"><span class="tp-icon">🐦</span> Flutter</div>
+      <div class="tech-pill reveal reveal-delay-2"><span class="tp-icon">🔥</span> Firebase</div>
+      <div class="tech-pill reveal reveal-delay-1"><span class="tp-icon">☁️</span> Cloud Firestore</div>
+      <div class="tech-pill reveal reveal-delay-3"><span class="tp-icon">🔐</span> Firebase Auth</div>
+      <div class="tech-pill reveal reveal-delay-2"><span class="tp-icon">📲</span> FCM Push</div>
+      <div class="tech-pill reveal reveal-delay-1"><span class="tp-icon">🍎</span> iOS &amp; Android</div>
+      <div class="tech-pill reveal reveal-delay-3"><span class="tp-icon">🌐</span> Progressive Web App</div>
+      <div class="tech-pill reveal reveal-delay-2"><span class="tp-icon">🔔</span> Real-time Sync</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer ───────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="assets/CivicOS.png" alt="CivicOS" />
+        <p>Piattaforma per rendere la raccolta differenziata piu efficiente: semplice per i cittadini, operativa per il comune, misurabile per l'amministrazione.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h5>Prodotti</h5>
+          <ul>
+            <li><a href="#">App Mobile</a></li>
+            <li><a href="#">Portale Comune</a></li>
+            <li><a href="#">Portale Admin</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Funzionalità</h5>
+          <ul>
+            <li><a href="#">Segnalazioni</a></li>
+            <li><a href="#">Prenotazioni</a></li>
+            <li><a href="#">Comunicazioni</a></li>
+            <li><a href="#">Moduli</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Azienda</h5>
+          <ul>
+            <li><a href="#">Chi siamo</a></li>
+            <li><a href="#">Contatti</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 CivicOS. Tutti i diritti riservati.</span>
+      <div class="footer-badge">
+        Fatto con <span class="heart">♥</span> per l'Italia
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── Nav scroll ──────────────────────────────────────────── */
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 20);
+}, { passive: true });
+
+/* ── Scroll Reveal ───────────────────────────────────────── */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      revealObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/* ── Counter animation ───────────────────────────────────── */
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    const target = parseInt(el.dataset.target, 10);
+    const suffix = el.dataset.suffix || '';
+    const text = el.dataset.text;
+    if (text || isNaN(target)) return;
+    counterObserver.unobserve(el);
+
+    const duration = 1400;
+    const start = performance.now();
+    const from = 0;
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(from + (target - from) * ease) + suffix;
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.stat-num[data-target]').forEach(el => counterObserver.observe(el));
+
+/* ── Parallax hero orbs ──────────────────────────────────── */
+document.addEventListener('mousemove', (e) => {
+  const { innerWidth: W, innerHeight: H } = window;
+  const x = (e.clientX / W - 0.5) * 2;
+  const y = (e.clientY / H - 0.5) * 2;
+  const orb1 = document.querySelector('.orb-1');
+  const orb2 = document.querySelector('.orb-2');
+  const orb3 = document.querySelector('.orb-3');
+  if (orb1) orb1.style.transform = `translate(${x * 20}px, ${y * 20}px)`;
+  if (orb2) orb2.style.transform = `translate(${-x * 15}px, ${-y * 15}px)`;
+  if (orb3) orb3.style.transform = `translate(${x * 10}px, ${y * 10}px)`;
+}, { passive: true });
+</script>
+</body>
+</html>
