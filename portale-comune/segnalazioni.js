@@ -105,6 +105,22 @@ function truncate(str, n) {
   return str.length > n ? str.substring(0, n) + '…' : str;
 }
 
+function getSegnalazioneCoords(s) {
+  var lat = Number(s.lat);
+  var lng = Number(s.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    var pos = (s.posizione || '').toString();
+    var parts = pos.split(',');
+    if (parts.length >= 2) {
+      lat = Number(parts[0].trim());
+      lng = Number(parts[1].trim());
+    }
+  }
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return [lat, lng];
+}
+
 // ── Map ──
 var mapCoords = civicosGetComuneCoords();
 var map = L.map('map').setView(mapCoords, 14);
@@ -117,14 +133,20 @@ function renderMap(items) {
   markers.forEach(function(m) { map.removeLayer(m); });
   markers = [];
   items.forEach(function(s) {
-    if (typeof s.lat !== 'number' || typeof s.lng !== 'number') return;
+    var coords = getSegnalazioneCoords(s);
+    if (!coords) return;
     var color = s.stato === 'Aperta' ? '#E53935' : s.stato === 'In lavorazione' ? '#F57C00' : '#2E7D32';
-    var m = L.circleMarker([s.lat, s.lng], { radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.9 })
+    var m = L.circleMarker(coords, { radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.9 })
       .addTo(map)
-      .bindPopup('<strong>' + s.id + '</strong><br>' + s.categoria + '<br><em>' + s.stato + '</em>');
+      .bindPopup('<strong>' + (s.segnalazioneId || s.id) + '</strong><br>' + s.categoria + '<br><em>' + s.stato + '</em>');
     m.on('click', function() { openDetail(s); });
     markers.push(m);
   });
+
+  if (markers.length > 0) {
+    var group = L.featureGroup(markers);
+    map.fitBounds(group.getBounds().pad(0.2));
+  }
 }
 
 // ── Detail Panel ──
@@ -155,14 +177,17 @@ function openDetail(s) {
   if (s.stato === 'Aperta') {
     actions.innerHTML =
       '<button class="btn btn-warning" onclick="cambiStato(\'' + s.id + '\',\'In lavorazione\')">Prendi in carico</button>' +
-      '<button class="btn btn-success" onclick="cambiStato(\'' + s.id + '\',\'Risolta\')">Segna risolta</button>';
+      '<button class="btn btn-success" onclick="cambiStato(\'' + s.id + '\',\'Risolta\')">Segna risolta</button>' +
+      '<button class="btn btn-danger" onclick="deleteSegnalazioneFromDetail(\'' + s.id + '\')">Elimina</button>';
   } else if (s.stato === 'In lavorazione') {
     actions.innerHTML =
       '<button class="btn btn-success" onclick="cambiStato(\'' + s.id + '\',\'Risolta\')">Segna risolta</button>' +
-      '<button class="btn btn-outline" onclick="cambiStato(\'' + s.id + '\',\'Aperta\')">Riapri</button>';
+      '<button class="btn btn-outline" onclick="cambiStato(\'' + s.id + '\',\'Aperta\')">Riapri</button>' +
+      '<button class="btn btn-danger" onclick="deleteSegnalazioneFromDetail(\'' + s.id + '\')">Elimina</button>';
   } else {
     actions.innerHTML =
-      '<button class="btn btn-outline" onclick="cambiStato(\'' + s.id + '\',\'Aperta\')">Riapri</button>';
+      '<button class="btn btn-outline" onclick="cambiStato(\'' + s.id + '\',\'Aperta\')">Riapri</button>' +
+      '<button class="btn btn-danger" onclick="deleteSegnalazioneFromDetail(\'' + s.id + '\')">Elimina</button>';
   }
 
   panel.classList.add('open');
@@ -181,6 +206,20 @@ function cambiStato(id, nuovoStato) {
     saveSegnalazione(seg);
   }
   closeDetail();
+}
+
+async function deleteSegnalazioneFromDetail(id) {
+  if (!id) return;
+  var seg = segnalazioni.find(function(s) { return s.id === id; });
+  var label = seg ? (seg.segnalazioneId || seg.id) : id;
+  if (!confirm('Eliminare la segnalazione ' + label + '?')) return;
+  try {
+    await deleteSegnalazione(id);
+    closeDetail();
+  } catch (e) {
+    console.error('[CivicOS] Errore eliminazione segnalazione:', e);
+    alert('Impossibile eliminare la segnalazione.');
+  }
 }
 
 // ── Listeners ──
