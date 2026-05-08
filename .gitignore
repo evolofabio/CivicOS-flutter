@@ -1,0 +1,87 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+.gradle/
+local.properties
+*.kwks
+*.keystore
+*.jks
+gradle-wrapper.jar
+.project
+.settings/
+.classpath
+
+# iOS/macOS
+iOS/DerivedData/
+iOS/Pods/
+iOS/.generated/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcworkspace
+!default.xcworkspace
+xcuserdata/
+*.moved-aside
+DerivedData/
+Pods/
+.generated/
+
+# Linux
+*.so
+
+# Windows
+executable/
+*.dll
+*.exe
+*.msi
+*.pdb
+
+# Web
+.dart_tool/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+*.iws
+
+# System
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+firestore-debug.log
+firebase-debug.log
+database-debug.log
+pubsub-debug.log
+hosting-debug.log
+ui-debug.log
+
+# macOS document files accidentally included
+*.pages
+*.numbers
+*.key
+
+# Flutter web build artifacts (not in source web/)
+web/main.dart.js
+web/flutter.js
+web/flutter_bootstrap.js
+web/flutter_service_worker.js
+web/version.json
+web/canvaskit/
+web/assets/AssetManifest.bin
+web/assets/AssetManifest.bin.json
+web/assets/FontManifest.json
+web/assets/NOTICES
+web/assets/fonts/
+web/assets/shaders/
+web/assets/packages/
+functions/node_modules/
