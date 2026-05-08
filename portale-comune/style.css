@@ -101,6 +101,30 @@ body {
   margin-bottom: 32px;
   letter-spacing: 1px;
 }
+
+.sidebar-brand {
+  text-align: center;
+  padding: 0 16px;
+  margin-bottom: 10px;
+}
+
+.sidebar-brand-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.95);
+  border: 1px solid rgba(255,255,255,.55);
+  box-shadow: 0 8px 18px rgba(4, 20, 44, 0.28);
+}
+
+.sidebar-brand img {
+  max-width: 136px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
 .comune-header {
   text-align: center;
   padding: 12px 16px 16px;

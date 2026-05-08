@@ -80,7 +80,22 @@ body {
   border-bottom: 1px solid rgba(255,255,255,.12);
   margin-bottom: 12px;
 }
-.sidebar-logo img { max-width: 120px; height: auto; }
+.sidebar-logo .brand-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 8px 18px rgba(2, 17, 43, 0.25);
+  border: 1px solid rgba(255,255,255,.55);
+}
+.sidebar-logo img {
+  max-width: 124px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
 .sidebar-logo .label {
   display: block;
   font-size: 10px;
@@ -1075,7 +1090,9 @@ body {
 <!-- ── SIDEBAR ── -->
 <div class="sidebar" id="adminSidebar">
   <div class="sidebar-logo">
-    <img src="logo.png" alt="CivicOS">
+    <div class="brand-shell">
+      <img src="logo.png" alt="CivicOS" onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src='CivicOS-Remove.png';}else{this.style.display='none';this.parentNode.innerHTML='<span style=\'font-weight:800;font-size:18px;color:#0D3B66;letter-spacing:.5px\'>CivicOS</span>';}">
+    </div>
     <span class="label">Pannello Admin</span>
   </div>
   <div class="sidebar-user" id="sidebarUser">

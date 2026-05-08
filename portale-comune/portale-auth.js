@@ -28,6 +28,8 @@ var _comuniStemmi = {
 
   var comuneName = parsed.comune;
 
+  setupSidebarLogo();
+
   // Update browser tab title with comune name
   var baseTitle = document.title.replace(/CivicOS\s*[–—-]?\s*/, '').trim();
   document.title = 'CivicOS – ' + (baseTitle || 'Dashboard') + ' – ' + comuneName;
@@ -84,6 +86,38 @@ var _comuniStemmi = {
   }
 
   setupA11yAndMobileSidebar();
+
+  function setupSidebarLogo() {
+    var logoImg = document.querySelector('.sidebar > div img, .sidebar .sidebar-brand img');
+    if (!logoImg) return;
+
+    var container = logoImg.closest('div');
+    if (container) container.classList.add('sidebar-brand');
+
+    if (!logoImg.parentElement.classList.contains('sidebar-brand-shell')) {
+      var shell = document.createElement('div');
+      shell.className = 'sidebar-brand-shell';
+      logoImg.parentNode.insertBefore(shell, logoImg);
+      shell.appendChild(logoImg);
+    }
+
+    logoImg.loading = 'eager';
+    logoImg.decoding = 'async';
+    logoImg.referrerPolicy = 'no-referrer';
+
+    logoImg.addEventListener('error', function onErr() {
+      if (!logoImg.dataset.fallbackTried) {
+        logoImg.dataset.fallbackTried = '1';
+        logoImg.src = 'CivicOS-Remove.png';
+        return;
+      }
+      logoImg.style.display = 'none';
+      var shell = logoImg.closest('.sidebar-brand-shell');
+      if (shell) {
+        shell.innerHTML = '<span style="font-weight:800;font-size:18px;color:#0D3B66;letter-spacing:.5px">CivicOS</span>';
+      }
+    }, { once: true });
+  }
 
   function setupA11yAndMobileSidebar() {
     var main = document.querySelector('.main');
