@@ -15,6 +15,53 @@ body {
   min-height: 100vh;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  top: -44px;
+  left: 12px;
+  z-index: 1400;
+  background: #fff;
+  color: #1E4E8C;
+  border: 2px solid #1E4E8C;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip-link:focus { top: 12px; }
+
+.admin-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1250;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #1E4E8C;
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(13, 41, 84, 0.22);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.admin-backdrop {
+  display: none;
+}
+
 /* ── Sidebar ── */
 .sidebar {
   width: 260px;
@@ -830,11 +877,25 @@ body {
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .sidebar { width: 60px; padding: 12px 0; }
-  .sidebar-logo, .sidebar-user, .sidebar-nav .section-label { display: none; }
-  .sidebar-nav a { padding: 12px 0; justify-content: center; font-size: 18px; border-left: none; }
-  .sidebar-nav a span { display: none; }
-  .main { margin-left: 60px; padding: 20px; }
+  .sidebar {
+    width: 250px;
+    padding: 16px 0;
+    transform: translateX(-100%);
+    transition: transform .28s ease;
+  }
+  body.admin-sidebar-open .sidebar { transform: translateX(0); }
+  .sidebar-logo, .sidebar-user, .sidebar-nav .section-label { display: block; }
+  .sidebar-nav a { padding: 12px 18px; justify-content: flex-start; font-size: 14px; border-left: 3px solid transparent; }
+  .sidebar-nav a span { display: inline; }
+  .admin-mobile-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  .admin-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 90;
+  }
+  body.admin-sidebar-open .admin-backdrop { display: block; }
+  .main { margin-left: 0; padding: 20px; padding-top: 68px; }
   .comuni-grid { grid-template-columns: 1fr; }
   .filter-bar input[type="text"] { width: 100%; }
   .anagrafica-grid { grid-template-columns: 1fr; }
@@ -847,8 +908,12 @@ body {
 </head>
 <body>
 
+<a class="skip-link" href="#mainContent">Salta al contenuto</a>
+<button type="button" class="admin-mobile-toggle" id="adminSidebarToggle" aria-label="Apri menu amministrazione" aria-controls="adminSidebar" aria-expanded="false">☰</button>
+<div class="admin-backdrop" id="adminBackdrop" aria-hidden="true"></div>
+
 <!-- ── SIDEBAR ── -->
-<div class="sidebar">
+<div class="sidebar" id="adminSidebar">
   <div class="sidebar-logo">
     <img src="logo.png" alt="CivicOS">
     <span class="label">Pannello Admin</span>
@@ -857,7 +922,7 @@ body {
     <div class="name">Admin</div>
     Gestione piattaforma
   </div>
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" aria-label="Navigazione amministrazione">
     <div class="section-label">Panoramica</div>
     <a href="#" class="active" onclick="switchTab('dashboard', this);return false;">📊 <span>Dashboard</span></a>
     <div class="section-label">Gestione</div>
@@ -873,7 +938,7 @@ body {
 </div>
 
 <!-- ── MAIN ── -->
-<div class="main">
+<div class="main" id="mainContent">
 
   <!-- ── Dashboard overview ── -->
   <div id="sectionDashboard">
@@ -940,14 +1005,14 @@ body {
     <div class="config-panel" id="cfgPanel">
 
       <!-- Config Tabs -->
-      <div class="config-tabs">
-        <button class="config-tab-btn active" onclick="switchConfigTab('sindaco', this)">👤 Sindaco</button>
-        <button class="config-tab-btn" onclick="switchConfigTab('sede', this)">🏛️ Sede Comunale</button>
-        <button class="config-tab-btn" onclick="switchConfigTab('frazioni', this)">🏘️ Frazioni</button>
-        <button class="config-tab-btn" onclick="switchConfigTab('servizi', this)">🔧 Servizi</button>
-        <button class="config-tab-btn" onclick="switchConfigTab('portale', this)">🎨 Personalizzazione</button>
-        <button class="config-tab-btn" onclick="switchConfigTab('orari', this)">🕐 Orari Uffici</button>
-        <button class="config-tab-btn" onclick="switchConfigTab('link', this)">🔗 Link e Contatti</button>
+      <div class="config-tabs" role="tablist" aria-label="Sezioni configurazione comune">
+        <button class="config-tab-btn active" id="cfgTabBtnSindaco" role="tab" aria-controls="cfgTabSindaco" aria-selected="true" tabindex="0" onclick="switchConfigTab('sindaco', this)">👤 Sindaco</button>
+        <button class="config-tab-btn" id="cfgTabBtnSede" role="tab" aria-controls="cfgTabSede" aria-selected="false" tabindex="-1" onclick="switchConfigTab('sede', this)">🏛️ Sede Comunale</button>
+        <button class="config-tab-btn" id="cfgTabBtnFrazioni" role="tab" aria-controls="cfgTabFrazioni" aria-selected="false" tabindex="-1" onclick="switchConfigTab('frazioni', this)">🏘️ Frazioni</button>
+        <button class="config-tab-btn" id="cfgTabBtnServizi" role="tab" aria-controls="cfgTabServizi" aria-selected="false" tabindex="-1" onclick="switchConfigTab('servizi', this)">🔧 Servizi</button>
+        <button class="config-tab-btn" id="cfgTabBtnPortale" role="tab" aria-controls="cfgTabPortale" aria-selected="false" tabindex="-1" onclick="switchConfigTab('portale', this)">🎨 Personalizzazione</button>
+        <button class="config-tab-btn" id="cfgTabBtnOrari" role="tab" aria-controls="cfgTabOrari" aria-selected="false" tabindex="-1" onclick="switchConfigTab('orari', this)">🕐 Orari Uffici</button>
+        <button class="config-tab-btn" id="cfgTabBtnLink" role="tab" aria-controls="cfgTabLink" aria-selected="false" tabindex="-1" onclick="switchConfigTab('link', this)">🔗 Link e Contatti</button>
       </div>
 
       <!-- TAB: Sindaco -->
@@ -1890,9 +1955,20 @@ function loadCfgData(comune, reg) {
 
 // ── Config tab switch ──
 function switchConfigTab(tabId, btn) {
-  document.querySelectorAll('.config-tab-btn').forEach(function(b) { b.classList.remove('active'); });
-  document.querySelectorAll('.config-tab-panel').forEach(function(p) { p.classList.remove('active'); });
-  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.config-tab-btn').forEach(function(b) {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+    b.setAttribute('tabindex', '-1');
+  });
+  document.querySelectorAll('.config-tab-panel').forEach(function(p) {
+    p.classList.remove('active');
+    p.setAttribute('hidden', 'hidden');
+  });
+  if (btn) {
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    btn.setAttribute('tabindex', '0');
+  }
   var tabMap = {
     'sindaco': 'cfgTabSindaco',
     'sede': 'cfgTabSede',
@@ -1903,7 +1979,75 @@ function switchConfigTab(tabId, btn) {
     'link': 'cfgTabLink'
   };
   var panel = document.getElementById(tabMap[tabId]);
-  if (panel) panel.classList.add('active');
+  if (panel) {
+    panel.classList.add('active');
+    panel.removeAttribute('hidden');
+  }
+}
+
+function setupAdminEnhancements() {
+  var sidebar = document.getElementById('adminSidebar');
+  var toggle = document.getElementById('adminSidebarToggle');
+  var backdrop = document.getElementById('adminBackdrop');
+
+  function openSidebar() {
+    document.body.classList.add('admin-sidebar-open');
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', 'true');
+      toggle.setAttribute('aria-label', 'Chiudi menu amministrazione');
+    }
+  }
+
+  function closeSidebar() {
+    document.body.classList.remove('admin-sidebar-open');
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Apri menu amministrazione');
+    }
+  }
+
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      if (document.body.classList.contains('admin-sidebar-open')) closeSidebar();
+      else openSidebar();
+    });
+  }
+
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+  document.addEventListener('keydown', function(ev) {
+    if (ev.key === 'Escape') closeSidebar();
+  });
+
+  if (sidebar) {
+    sidebar.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        if (window.matchMedia('(max-width: 900px)').matches) closeSidebar();
+      });
+    });
+  }
+
+  var tabButtons = Array.from(document.querySelectorAll('.config-tab-btn'));
+  tabButtons.forEach(function(btn) {
+    btn.addEventListener('keydown', function(ev) {
+      if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft' && ev.key !== 'Home' && ev.key !== 'End') return;
+      ev.preventDefault();
+
+      var currentIndex = tabButtons.indexOf(btn);
+      var nextIndex = currentIndex;
+
+      if (ev.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabButtons.length;
+      if (ev.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabButtons.length) % tabButtons.length;
+      if (ev.key === 'Home') nextIndex = 0;
+      if (ev.key === 'End') nextIndex = tabButtons.length - 1;
+
+      var nextBtn = tabButtons[nextIndex];
+      if (nextBtn) {
+        nextBtn.focus();
+        nextBtn.click();
+      }
+    });
+  });
 }
 
 // ── Frazioni management ──
@@ -2285,6 +2429,7 @@ function deleteCfgComune() {
 }
 
 // ── Init ──
+setupAdminEnhancements();
 renderComuni();
 </script>
 </body>
