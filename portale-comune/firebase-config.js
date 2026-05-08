@@ -23,13 +23,11 @@ function civicosEnsureFirebaseSession() {
     if (!firebase.auth) return true;
     const auth = firebase.auth();
     if (auth.currentUser) return true;
-    try {
-      await auth.signInAnonymously();
-      return true;
-    } catch (e) {
-      console.error('[CivicOS] Firebase auth bootstrap failed:', e);
-      return false;
-    }
+
+    // Disabilitato di default: se nel progetto Firebase l'anonimo non e' abilitato,
+    // la chiamata genera auth/admin-restricted-operation e rumore in console.
+    // Riabilitare solo se necessario per regole che richiedono request.auth.
+    return true;
   })();
   return _firebaseSessionReady;
 }
