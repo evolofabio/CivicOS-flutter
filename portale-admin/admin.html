@@ -1527,6 +1527,51 @@ function saveConfig(cfg) {
 }
 
 var config = loadConfig();
+var cloudRegisteredComuni = {};
+
+function normalizeServiceMap(raw) {
+  var source = raw && typeof raw === 'object' ? raw : {};
+  var out = {};
+  SERVIZI.forEach(function(s) {
+    out[s.id] = !!source[s.id];
+  });
+  return out;
+}
+
+function getComuneNameFromDocId(docId) {
+  for (var i = 0; i < COMUNI.length; i++) {
+    if (comuneDocIdFromName(COMUNI[i]) === docId) return COMUNI[i];
+  }
+  return null;
+}
+
+async function preloadCloudComuni() {
+  if (!window._db) return;
+  try {
+    var snap = await window._db.collection('comuni').get();
+    var fromCloud = {};
+
+    snap.forEach(function(doc) {
+      var comuneName = getComuneNameFromDocId(doc.id);
+      if (!comuneName) return;
+
+      var data = doc.data() || {};
+      fromCloud[comuneName] = data;
+
+      // Hydrate service toggles from cloud if available.
+      var cloudServices = data.servizi || data.services || data.serviziAttivi || null;
+      if (cloudServices && typeof cloudServices === 'object') {
+        config[comuneName] = normalizeServiceMap(cloudServices);
+      }
+    });
+
+    cloudRegisteredComuni = fromCloud;
+    saveConfig(config);
+    renderComuni();
+  } catch (err) {
+    console.error('Cloud comuni preload failed:', err);
+  }
+}
 
 // ── Get comune registration info from localStorage ──
 function getComuneRegistration(comune) {
@@ -1543,9 +1588,19 @@ function getComuneUsers(comune) {
 }
 
 function getAllRegisteredComuni() {
+  var local = getLocalRegisteredComuni();
+  var merged = Object.assign({}, cloudRegisteredComuni, local);
+  return merged;
+}
+
+function getLocalRegisteredComuni() {
   var raw = localStorage.getItem('civicos_comuni_config');
   if (!raw) return {};
-  return JSON.parse(raw);
+  try {
+    return JSON.parse(raw) || {};
+  } catch (e) {
+    return {};
+  }
 }
 
 function getTotalUsers() {
@@ -1560,6 +1615,9 @@ function getTotalUsers() {
 function toggleService(comune, serviceId) {
   config[comune][serviceId] = !config[comune][serviceId];
   saveConfig(config);
+  syncComuneServicesToFirestore(comune).catch(function(err) {
+    console.error('Sync servizi failed:', err);
+  });
   updateStats();
   updateCardStatus(comune);
   showToast((config[comune][serviceId] ? '✅ Attivato' : '❌ Disattivato') + ': ' + getServiceName(serviceId) + ' – ' + comune);
@@ -1573,13 +1631,33 @@ function getServiceName(id) {
 function setAllServices(comune, state) {
   SERVIZI.forEach(function(s) { config[comune][s.id] = state; });
   saveConfig(config);
+  syncComuneServicesToFirestore(comune).catch(function(err) {
+    console.error('Sync servizi failed:', err);
+  });
   renderComuni();
   showToast(state ? '✅ Tutti i servizi attivati per ' + comune : '❌ Tutti i servizi disattivati per ' + comune);
+}
+
+async function syncComuneServicesToFirestore(comuneName) {
+  if (!window._db) return;
+  var comuneId = comuneDocIdFromName(comuneName);
+  if (!comuneId || !config[comuneName]) return;
+
+  await window._db.collection('comuni').doc(comuneId).set({
+    servizi: normalizeServiceMap(config[comuneName]),
+    servicesUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+function isComuneRegistered(comune) {
+  var allReg = getAllRegisteredComuni();
+  return !!allReg[comune];
 }
 
 function getComuneStatus(comune) {
   var on = 0;
   SERVIZI.forEach(function(s) { if (config[comune] && config[comune][s.id]) on++; });
+  if (on === 0 && isComuneRegistered(comune)) return 'parziale';
   if (on === 0) return 'inattivo';
   if (on === SERVIZI.length) return 'attivo';
   return 'parziale';
@@ -1588,6 +1666,7 @@ function getComuneStatus(comune) {
 function getComuneActiveCount(comune) {
   var on = 0;
   SERVIZI.forEach(function(s) { if (config[comune] && config[comune][s.id]) on++; });
+  if (on === 0 && isComuneRegistered(comune)) return 1;
   return on;
 }
 
@@ -2139,6 +2218,9 @@ function cfgToggleServizio(serviceId, state) {
   }
   config[cfgSelectedComune][serviceId] = state;
   saveConfig(config);
+  syncComuneServicesToFirestore(cfgSelectedComune).catch(function(err) {
+    console.error('Sync servizi failed:', err);
+  });
   updateStats();
 }
 
@@ -2146,6 +2228,9 @@ function cfgSetAllServizi(state) {
   if (!cfgSelectedComune) return;
   SERVIZI.forEach(function(s) { config[cfgSelectedComune][s.id] = state; });
   saveConfig(config);
+  syncComuneServicesToFirestore(cfgSelectedComune).catch(function(err) {
+    console.error('Sync servizi failed:', err);
+  });
   renderCfgServizi(cfgSelectedComune);
   updateStats();
   showToast(state ? '✅ Tutti i servizi attivati' : '❌ Tutti i servizi disattivati');
@@ -2297,7 +2382,7 @@ function saveCfgComune() {
     };
   });
 
-  var allReg = getAllRegisteredComuni();
+  var allReg = getLocalRegisteredComuni();
   var existingPw = (allReg[cfgSelectedComune] && allReg[cfgSelectedComune].sindaco) ? allReg[cfgSelectedComune].sindaco.password : null;
   var newPw = document.getElementById('cfgSindacoPassword').value;
 
@@ -2416,7 +2501,7 @@ function deleteCfgComune() {
   if (!cfgSelectedComune) return;
   if (!confirm('Sei sicuro di voler eliminare la configurazione di ' + cfgSelectedComune + '?\nQuesta azione non è reversibile.')) return;
 
-  var allReg = getAllRegisteredComuni();
+  var allReg = getLocalRegisteredComuni();
   delete allReg[cfgSelectedComune];
   localStorage.setItem('civicos_comuni_config', JSON.stringify(allReg));
   localStorage.removeItem('civicos_utenti_' + cfgSelectedComune);
@@ -2431,6 +2516,7 @@ function deleteCfgComune() {
 // ── Init ──
 setupAdminEnhancements();
 renderComuni();
+preloadCloudComuni();
 </script>
 </body>
 </html>
