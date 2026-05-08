@@ -40,9 +40,9 @@ class _CivicOSAppState extends State<CivicOSApp> {
   static const _keyComune = 'civicos_comune';
   static const _keyFrazione = 'civicos_frazione';
 
-    String _keyComuneForUser(String? uid) =>
+  String _keyComuneForUser(String? uid) =>
       uid == null ? _keyComune : 'civicos_comune_$uid';
-    String _keyFrazioneForUser(String? uid) =>
+  String _keyFrazioneForUser(String? uid) =>
       uid == null ? _keyFrazione : 'civicos_frazione_$uid';
 
   @override
@@ -178,8 +178,7 @@ class _CivicOSAppState extends State<CivicOSApp> {
           await prefs.setString(_keyComune, inferredComune);
 
           final frazioni = MockData.comuni[inferredComune] ?? const <String>[];
-          final inferredFrazione =
-              frazioni.isNotEmpty ? frazioni.first : '';
+          final inferredFrazione = frazioni.isNotEmpty ? frazioni.first : '';
           await prefs.setString(userFrazioneKey, inferredFrazione);
           await prefs.setString(_keyFrazione, inferredFrazione);
           savedFrazione = inferredFrazione;
@@ -209,14 +208,105 @@ class _CivicOSAppState extends State<CivicOSApp> {
         // Aggiorna anche il Tenant provider
         final tenant = Provider.of<Tenant>(context, listen: false);
         tenant.updateComune(id: Tenant.toId(savedComune), name: savedComune);
-        FirebaseMessagingService().syncComuneSubscription(Tenant.toId(savedComune));
+        FirebaseMessagingService().syncComuneSubscription(
+          Tenant.toId(savedComune),
+        );
         _startNotificaListener(Tenant.toId(savedComune));
+        unawaited(_notifyRaccoltaDailyIfNeeded());
       }
     }
   }
 
   void _setIndex(int i) => setState(() => _currentIndex = i);
   void _toggleSenior(bool v) => setState(() => _seniorMode = v);
+
+  String _weekdayNameIt(DateTime d) {
+    switch (d.weekday) {
+      case DateTime.monday:
+        return 'Lunedì';
+      case DateTime.tuesday:
+        return 'Martedì';
+      case DateTime.wednesday:
+        return 'Mercoledì';
+      case DateTime.thursday:
+        return 'Giovedì';
+      case DateTime.friday:
+        return 'Venerdì';
+      case DateTime.saturday:
+        return 'Sabato';
+      case DateTime.sunday:
+      default:
+        return 'Domenica';
+    }
+  }
+
+  Set<String> _raccoltaTipiForDay(String giorno) {
+    final tipi = <String>{};
+    for (final calendario in MockData.calendarioPerFrazione.values) {
+      for (final row in calendario) {
+        if ((row['giorno'] as String? ?? '') == giorno) {
+          final list = (row['tipi'] as List<dynamic>? ?? []);
+          for (final t in list) {
+            final value = t.toString().trim();
+            if (value.isNotEmpty) tipi.add(value);
+          }
+        }
+      }
+    }
+    if (tipi.isEmpty) {
+      for (final row in MockData.calendarioRaccolta) {
+        if ((row['giorno'] as String? ?? '') == giorno) {
+          final list = (row['tipi'] as List<dynamic>? ?? []);
+          for (final t in list) {
+            final value = t.toString().trim();
+            if (value.isNotEmpty) tipi.add(value);
+          }
+        }
+      }
+    }
+    return tipi;
+  }
+
+  Future<void> _notifyRaccoltaForDate(DateTime date, {required bool tomorrow}) async {
+    if (!_notificationsEnabled) return;
+    final giorno = _weekdayNameIt(date);
+    final tipi = _raccoltaTipiForDay(giorno);
+    if (tipi.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final dateKey = date.toIso8601String().split('T').first;
+    final key = 'civicos_raccolta_${tomorrow ? 'domani' : 'oggi'}_${_comuneSelezionato}_$dateKey';
+    if (prefs.getBool(key) == true) return;
+
+    final title = tomorrow
+        ? 'Raccolta differenziata di domani'
+        : 'Raccolta differenziata di oggi';
+    final body = 'Comune di $_comuneSelezionato: ${tipi.join(', ')}';
+
+    await FlutterLocalNotificationsPlugin().show(
+      key.hashCode,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'civicos_avvisi',
+          'Avvisi CivicOS',
+          channelDescription: 'Notifiche su comunicazioni e avvisi del comune',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
+
+    await prefs.setBool(key, true);
+  }
+
+  Future<void> _notifyRaccoltaDailyIfNeeded() async {
+    final now = DateTime.now();
+    await _notifyRaccoltaForDate(now, tomorrow: false);
+    await _notifyRaccoltaForDate(now.add(const Duration(days: 1)), tomorrow: true);
+  }
 
   void _startNotificaListener(String comuneId) {
     _notificaListener?.cancel();
@@ -226,47 +316,42 @@ class _CivicOSAppState extends State<CivicOSApp> {
         .doc(comuneId)
         .snapshots()
         .listen((snap) {
-      if (!snap.exists || !mounted) return;
-      final data = snap.data();
-      if (data == null) return;
-      final notifica = data['_lastNotifica'] as Map<String, dynamic>?;
-      if (notifica == null) return;
-      final ts = notifica['timestamp'] as Timestamp?;
-      if (ts == null) return;
-      // mostra solo notifiche nuove (dopo l'avvio del listener)
-      if (_lastNotificaTimestamp != null &&
-          !ts.toDate().isAfter(_lastNotificaTimestamp!.toDate())) return;
-      _lastNotificaTimestamp = ts;
-      // Controlla se la notifica è destinata alla frazione dell'utente
-      final frazioni = ((notifica['frazioni'] as List<dynamic>?) ?? [])
-          .map((e) => e.toString().trim().toLowerCase())
-          .where((e) => e.isNotEmpty)
-          .toList();
-      final frazioneUtente = _frazioneSelezionata.trim().toLowerCase();
-      if (frazioni.isNotEmpty && !frazioni.contains(frazioneUtente)) return;
-      // Mostra notifica locale
-      final titolo = notifica['titolo'] as String? ?? 'Nuovo avviso';
-      final contenuto = notifica['contenuto'] as String? ?? '';
-      final tipo = notifica['tipo'] as String? ?? '';
-      final header = tipo.isNotEmpty
-          ? 'Comune di $_comuneSelezionato - ${tipo[0].toUpperCase()}${tipo.substring(1)}'
-          : 'Comune di $_comuneSelezionato';
-      FlutterLocalNotificationsPlugin().show(
-        ts.hashCode,
-        header,
-        contenuto.isNotEmpty ? '$titolo\n$contenuto' : titolo,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'civicos_avvisi',
-            'Avvisi CivicOS',
-            channelDescription: 'Notifiche su comunicazioni e avvisi del comune',
-            importance: Importance.high,
-            priority: Priority.high,
-          ),
-          iOS: DarwinNotificationDetails(),
-        ),
-      );
-    });
+          if (!snap.exists || !mounted) return;
+          final data = snap.data();
+          if (data == null) return;
+          final notifica = data['_lastNotifica'] as Map<String, dynamic>?;
+          if (notifica == null) return;
+          final ts = notifica['timestamp'] as Timestamp?;
+          if (ts == null) return;
+          // mostra solo notifiche nuove (dopo l'avvio del listener)
+          if (_lastNotificaTimestamp != null &&
+              !ts.toDate().isAfter(_lastNotificaTimestamp!.toDate()))
+            return;
+          _lastNotificaTimestamp = ts;
+          // Mostra notifica locale
+          final titolo = notifica['titolo'] as String? ?? 'Nuovo avviso';
+          final contenuto = notifica['contenuto'] as String? ?? '';
+          final tipo = notifica['tipo'] as String? ?? '';
+          final header = tipo.isNotEmpty
+              ? 'Comune di $_comuneSelezionato - ${tipo[0].toUpperCase()}${tipo.substring(1)}'
+              : 'Comune di $_comuneSelezionato';
+          FlutterLocalNotificationsPlugin().show(
+            ts.hashCode,
+            header,
+            contenuto.isNotEmpty ? '$titolo\n$contenuto' : titolo,
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'civicos_avvisi',
+                'Avvisi CivicOS',
+                channelDescription:
+                    'Notifiche su comunicazioni e avvisi del comune',
+                importance: Importance.high,
+                priority: Priority.high,
+              ),
+              iOS: DarwinNotificationDetails(),
+            ),
+          );
+        });
   }
 
   @override
@@ -287,6 +372,7 @@ class _CivicOSAppState extends State<CivicOSApp> {
     tenant.updateComune(id: Tenant.toId(c), name: c);
     await FirebaseMessagingService().syncComuneSubscription(Tenant.toId(c));
     _startNotificaListener(Tenant.toId(c));
+    await _notifyRaccoltaDailyIfNeeded();
     // Salva su disco
     final prefs = await SharedPreferences.getInstance();
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -390,7 +476,8 @@ class _CivicOSAppState extends State<CivicOSApp> {
         comuneSelezionato: _comuneSelezionato,
         frazioneSelezionata: _frazioneSelezionata,
         onSeniorModeChanged: _toggleSenior,
-        onNotificationsChanged: (v) => setState(() => _notificationsEnabled = v),
+        onNotificationsChanged: (v) =>
+            setState(() => _notificationsEnabled = v),
         onComuneChanged: (c) => _setComune(c),
         onFrazioneChanged: (f) => _setFrazione(f),
         onPrivacyConsentChanged: (v) {},

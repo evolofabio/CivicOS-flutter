@@ -72,6 +72,14 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
+  Future<bool> _ensureRealGpsPosition() async {
+    if (_posizioneRilevata && _posizioneController.text.trim().contains(',')) {
+      return true;
+    }
+    await _rilievaGPS();
+    return _posizioneRilevata && _posizioneController.text.trim().contains(',');
+  }
+
   void _send() async {
     if (_categoria == null || _descController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,6 +87,20 @@ class _ReportScreenState extends State<ReportScreen> {
       );
       return;
     }
+
+    final hasRealPosition = await _ensureRealGpsPosition();
+    if (!hasRealPosition) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Impossibile rilevare la posizione reale. Attiva GPS e permessi posizione, poi riprova.',
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() => _sending = true);
     try {
       final tenant = Provider.of<Tenant>(context, listen: false);
@@ -460,8 +482,9 @@ class _ReportScreenState extends State<ReportScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _posizioneController,
+                      readOnly: true,
                       decoration: InputDecoration(
-                        hintText: 'Inserisci o rileva la posizione',
+                        hintText: 'Posizione GPS reale (rilevata automaticamente)',
                         prefixIcon: Icon(
                           Icons.location_on,
                           color: _posizioneRilevata ? Colors.green : null,
