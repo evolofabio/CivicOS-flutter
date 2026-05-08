@@ -17,7 +17,7 @@ service cloud.firestore {
 
     match /comuni/{comuneId}/segnalazioni/{docId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if true;
     }
 
     match /comuni/{comuneId}/prenotazioni/{docId} {
