@@ -27,147 +27,132 @@
 
 <div class="main">
 
+  <!-- ── Header ── -->
   <div class="page-header">
     <h1>Comunicazioni ai Cittadini</h1>
-    <button class="btn btn-primary" onclick="openNewPost()">+ Nuovo avviso</button>
+    <button class="btn btn-primary" id="btnNuovoPost" onclick="openComposer()">+ Nuovo post</button>
   </div>
 
-  <div class="content-tabs" role="tablist" aria-label="Sezione contenuti">
-    <button id="tabAll" class="content-tab active" onclick="setCanaleView('all')">Tutti</button>
-    <button id="tabComunicazioni" class="content-tab" onclick="setCanaleView('comunicazione')">Comunicazioni</button>
-    <button id="tabNews" class="content-tab" onclick="setCanaleView('news')">News</button>
+  <!-- ── Composer ── -->
+  <div id="composerWrap" class="composer-wrap" style="display:none">
+    <div class="composer-box">
+      <div class="composer-top">
+        <div class="composer-avatar">🏛️</div>
+        <textarea id="compTesto" class="composer-textarea" placeholder="Scrivi un messaggio ai cittadini…" rows="3" oninput="autoGrowComposer(this)"></textarea>
+      </div>
+
+      <div id="compMediaPreview" class="composer-media-preview" style="display:none">
+        <button class="comp-media-remove" onclick="clearComposerMedia()" title="Rimuovi media">✕</button>
+        <img id="compMediaImg" style="display:none;width:100%;border-radius:8px;object-fit:cover;max-height:320px" alt="preview" />
+        <video id="compMediaVid" controls style="display:none;width:100%;border-radius:8px;max-height:320px"></video>
+      </div>
+
+      <div class="composer-meta">
+        <div class="composer-meta-row">
+          <div class="composer-field">
+            <label>Tipologia</label>
+            <select id="compTipo">
+              <option value="servizio">🔧 Servizio</option>
+              <option value="allerta">⚠️ Allerta</option>
+              <option value="evento">🎉 Evento</option>
+              <option value="istituzionale">🏛️ Istituzionale</option>
+            </select>
+          </div>
+          <div class="composer-field">
+            <label>Canale</label>
+            <select id="compCanale">
+              <option value="comunicazione">📢 Comunicazione</option>
+              <option value="news">📰 News</option>
+            </select>
+          </div>
+          <div class="composer-field" style="flex:2">
+            <label>Priorità</label>
+            <div id="compPrioChips" class="prio-chips">
+              <button class="prio-chip active" data-prio="normale" onclick="setComposerPriority('normale')">Normale</button>
+              <button class="prio-chip" data-prio="importante" onclick="setComposerPriority('importante')">Importante</button>
+              <button class="prio-chip" data-prio="urgente" onclick="setComposerPriority('urgente')">Urgente</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="composer-meta-row">
+          <div class="composer-field" style="flex:2">
+            <label>Destinatari</label>
+            <div id="compFrazioniWrap" style="display:none">
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px" id="compFrazioniCheckboxes"></div>
+              <button type="button" class="btn-text" onclick="toggleCompFrazioni()">Seleziona/Deseleziona tutte</button>
+            </div>
+            <div id="compFrazioniEmpty" style="font-size:12px;color:#888;padding:6px 0">Tutti i cittadini</div>
+          </div>
+          <div class="composer-field" style="flex:1">
+            <label>Zona libera</label>
+            <input type="text" id="compZona" placeholder="Es. Centro storico…" />
+          </div>
+        </div>
+
+        <div class="composer-meta-row">
+          <div class="composer-field" style="flex:1">
+            <label>Allegati PDF/immagini aggiuntivi</label>
+            <input type="file" id="compAllegatiInput" multiple accept="image/*,.pdf" style="display:none" onchange="handleCompAllegati(this.files)">
+            <div id="compAllegatiList" class="file-list"></div>
+            <button type="button" class="btn-text" onclick="document.getElementById('compAllegatiInput').click()">+ Aggiungi allegati</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer-toolbar">
+        <div class="composer-actions-left">
+          <button class="toolbar-btn" onclick="triggerMediaPick()" title="Foto / Video">
+            <span>🖼️</span> Foto / Video
+          </button>
+        </div>
+        <div class="composer-actions-right">
+          <button class="btn btn-outline" onclick="closeComposer()">Annulla</button>
+          <button class="btn btn-outline" onclick="saveCompDraft()">Bozza</button>
+          <button class="btn btn-primary" id="btnPublishComp" onclick="publishComp()">Pubblica</button>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="compMediaInput" accept="image/*,video/*" style="display:none" onchange="handleComposerMedia(this.files)">
   </div>
 
-  <div class="section-title-row">
-    <h2 id="sectionTitle">Tutti i contenuti</h2>
-  </div>
-
-  <!-- Stats -->
-  <div class="stats" style="margin-bottom:24px;">
-    <div class="card"><h3>Totale pubblicati</h3><p id="statTotal">0</p></div>
+  <!-- ── Stats ── -->
+  <div class="stats" style="margin-bottom:20px;">
+    <div class="card"><h3>Totale</h3><p id="statTotal">0</p></div>
     <div class="card"><h3>Attivi</h3><p id="statActive">0</p></div>
     <div class="card"><h3>Bozze</h3><p id="statDraft">0</p></div>
     <div class="card"><h3>Archiviati</h3><p id="statArchived">0</p></div>
   </div>
 
-  <!-- Filters -->
+  <!-- ── Tab canale ── -->
+  <div class="content-tabs" role="tablist">
+    <button id="tabAll" class="content-tab active" onclick="setCanaleView('all')">Tutti</button>
+    <button id="tabComunicazioni" class="content-tab" onclick="setCanaleView('comunicazione')">Comunicazioni</button>
+    <button id="tabNews" class="content-tab" onclick="setCanaleView('news')">News</button>
+  </div>
+
+  <!-- ── Filtri ── -->
   <div class="filters">
-    <select id="filterTipo">
-      <option value="">Tutti i tipi</option>
-      <option value="servizio">Servizio</option>
-      <option value="allerta">Allerta</option>
-      <option value="evento">Evento</option>
-      <option value="istituzionale">Istituzionale</option>
-    </select>
-    <select id="filterStato">
-      <option value="">Tutti gli stati</option>
-      <option value="attivo">Attivo</option>
-      <option value="bozza">Bozza</option>
-      <option value="archiviato">Archiviato</option>
-    </select>
-    <input type="text" id="filterSearch" placeholder="Cerca per titolo o contenuto…" />
+    <select id="filterTipo"><option value="">Tutti i tipi</option><option value="servizio">Servizio</option><option value="allerta">Allerta</option><option value="evento">Evento</option><option value="istituzionale">Istituzionale</option></select>
+    <select id="filterStato"><option value="">Tutti gli stati</option><option value="attivo">Attivo</option><option value="bozza">Bozza</option><option value="archiviato">Archiviato</option></select>
+    <input type="text" id="filterSearch" placeholder="Cerca…" />
   </div>
 
-  <!-- Posts list -->
-  <div id="postsList"></div>
+  <!-- ── Feed ── -->
+  <div id="postsFeed" class="posts-feed"></div>
 
 </div>
 
-<!-- New/Edit Post Panel -->
-<div class="detail-overlay" id="postPanel">
-  <button class="close-btn" onclick="closePanel()">&times;</button>
-  <h2 id="panelTitle">Nuovo avviso</h2>
-
-  <div class="form-group">
-    <label>Titolo *</label>
-    <input type="text" id="postTitolo" placeholder="Titolo della comunicazione" />
-  </div>
-
-  <div class="form-group">
-    <label>Tipologia *</label>
-    <select id="postTipo">
-      <option value="servizio">🔧 Servizio</option>
-      <option value="allerta">⚠️ Allerta</option>
-      <option value="evento">🎉 Evento</option>
-      <option value="istituzionale">🏛️ Istituzionale</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label>Canale</label>
-    <select id="postCanale">
-      <option value="comunicazione">Comunicazione classica</option>
-      <option value="news">News / Annuncio multimediale</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label>Contenuto *</label>
-    <textarea id="postCorpo" rows="6" placeholder="Scrivi il messaggio per i cittadini…"></textarea>
-  </div>
-
-  <div class="form-group">
-    <label>Media URL (opzionale)</label>
-    <input type="url" id="postMediaUrl" placeholder="https://... (immagine, video o pagina esterna)" />
-  </div>
-
-    <div class="form-group">
-      <label>Destinatari</label>
-      <div id="frazioniSelectorWrap" style="display:none">
-        <div style="margin-bottom:6px;">
-          <label style="font-size:12px;color:#666;">Seleziona le frazioni destinatarie (lascia tutto deselezionato per inviare a tutti)</label>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;" id="frazioniCheckboxes"></div>
-        <button type="button" class="btn btn-outlined" style="font-size:12px;padding:4px 10px;" onclick="toggleTutteLeFrazioni()">Seleziona/Deseleziona tutte</button>
-      </div>
-      <div id="frazioniSelectorEmpty" style="display:none;font-size:12px;color:#999;font-style:italic;">Nessuna frazione configurata per questo comune.</div>
-    </div>
-
-    <div class="form-group">
-      <label>Zona libera (opzionale)</label>
-      <input type="text" id="postZona" placeholder="Es. Centro, Via Roma, Quartiere Nord…" /></div>
-
-  <div class="form-group">
-    <label>Allegati (immagini, PDF)</label>
-    <div class="upload-area" id="uploadArea">
-      <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display:none" />
-      <div class="upload-placeholder" onclick="document.getElementById('fileInput').click()">
-        <span class="upload-icon">📎</span>
-        <span>Clicca o trascina file qui</span>
-        <span class="upload-hint">Immagini (JPG, PNG) o PDF • Max 10 MB</span>
-      </div>
-    </div>
-    <div id="fileList" class="file-list"></div>
-  </div>
-
-  <div class="form-group">
-    <label>Priorità</label>
-    <div class="priority-selector">
-      <button class="prio-btn" data-prio="normale" onclick="setPriority('normale')">Normale</button>
-      <button class="prio-btn" data-prio="importante" onclick="setPriority('importante')">Importante</button>
-      <button class="prio-btn" data-prio="urgente" onclick="setPriority('urgente')">Urgente</button>
-    </div>
-  </div>
-
-  <div class="actions" style="margin-top:24px;">
-    <button class="btn btn-primary" onclick="publishPost()">Pubblica</button>
-    <button class="btn btn-outline" onclick="saveDraft()">Salva bozza</button>
-    <button class="btn btn-danger" id="btnDelete" style="display:none" onclick="deletePost()">Elimina</button>
-  </div>
-</div>
-
-<!-- View Post Panel -->
+<!-- View / Edit overlay -->
 <div class="detail-overlay" id="viewPanel">
   <button class="close-btn" onclick="closeViewPanel()">&times;</button>
   <div id="viewContent"></div>
-  <div class="actions" id="viewActions" style="margin-top:20px;"></div>
+  <div id="viewActions" class="view-actions-bar"></div>
 </div>
 
-<!-- Firebase JS SDK (compat mode for simplicity) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
 <script src="portale-auth.js"></script>
 <script src="firebase-config.js"></script>
 <script src="comunicazioni.js"></script>
