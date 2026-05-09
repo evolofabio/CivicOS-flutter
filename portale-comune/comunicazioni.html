@@ -38,7 +38,10 @@
     <div class="composer-box">
       <div class="composer-top">
         <div class="composer-avatar">🏛️</div>
-        <textarea id="compTesto" class="composer-textarea" placeholder="Scrivi un messaggio ai cittadini…" rows="3" oninput="autoGrowComposer(this)"></textarea>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+          <input type="text" id="compTitolo" class="composer-title-input" placeholder="Titolo *" />
+          <textarea id="compTesto" class="composer-textarea" placeholder="Scrivi il messaggio per i cittadini…" rows="3" oninput="autoGrowComposer(this)"></textarea>
+        </div>
       </div>
 
       <div id="compMediaPreview" class="composer-media-preview" style="display:none">

@@ -296,7 +296,8 @@ function openComposer(postData) {
   compMediaName = postData && postData.mediaName ? postData.mediaName : null;
   compAllegati = postData && postData.allegati ? [...postData.allegati] : [];
 
-  document.getElementById('compTesto').value = postData ? postData.titolo + (postData.contenuto ? '\n' + postData.contenuto : '') : '';
+  document.getElementById('compTitolo').value = postData ? (postData.titolo || '') : '';
+  document.getElementById('compTesto').value = postData ? (postData.contenuto || '') : '';
   document.getElementById('compTipo').value = postData ? (postData.tipo || 'servizio') : 'servizio';
   document.getElementById('compCanale').value = postData ? (postData.canale || 'comunicazione') : 'comunicazione';
   document.getElementById('compZona').value = postData ? (postData.zona || '') : '';
@@ -310,13 +311,17 @@ function openComposer(postData) {
 
   document.getElementById('composerWrap').style.display = 'block';
   document.getElementById('btnNuovoPost').style.display = 'none';
-  document.getElementById('compTesto').focus();
+  document.getElementById('compTitolo').focus();
 }
 
 function closeComposer() {
   document.getElementById('composerWrap').style.display = 'none';
   document.getElementById('btnNuovoPost').style.display = '';
-  editingPostId = null; compMediaFile = null; compMediaDataUrl = null; compAllegati = [];
+  document.getElementById('compTitolo').value = '';
+  document.getElementById('compTesto').value = '';
+  editingPostId = null; compMediaFile = null; compMediaDataUrl = null; compMediaType = null; compMediaName = null; compAllegati = [];
+  renderCompAllegatiList();
+  renderCompMediaPreview();
 }
 
 function autoGrowComposer(el) {
@@ -447,39 +452,49 @@ async function buildCompAllegatiPayload() {
   }));
 }
 
-// ── Parse titolo / contenuto dal textarea ─────────────────────
+// ── Parse titolo / contenuto dal composer ────────────────────
 function parseComposerText() {
-  const raw = document.getElementById('compTesto').value.trim();
-  const lines = raw.split('\n');
-  const titolo = lines[0].trim();
-  const contenuto = lines.slice(1).join('\n').trim();
+  const titolo = (document.getElementById('compTitolo').value || '').trim();
+  const contenuto = (document.getElementById('compTesto').value || '').trim();
   return { titolo, contenuto };
 }
 
 // ── Publish ───────────────────────────────────────────────────
 async function publishComp() {
   const { titolo, contenuto } = parseComposerText();
-  if (!titolo) { alert('Scrivi almeno un titolo.'); return; }
+  if (!titolo) { alert('Inserisci un titolo.'); document.getElementById('compTitolo').focus(); return; }
 
   const btn = document.getElementById('btnPublishComp');
-  btn.disabled = true; btn.textContent = 'Pubblicazione…';
+  btn.disabled = true; btn.textContent = '⏳ Pubblicazione…';
 
   try {
     const allegati = await buildCompAllegatiPayload();
-    // Per i video usa l'URL blob (solo sessione corrente) o la dataUrl se piccolo
-    let mediaUrl = compMediaDataUrl || '';
-    // Se è un video file, proviamo a fare dataUrl (per video piccoli < 20MB) – altrimenti stringa vuota
-    if (compMediaFile && compMediaType === 'video' && compMediaFile.size < 20 * 1024 * 1024) {
-      try {
-        mediaUrl = await new Promise((res, rej) => {
-          const reader = new FileReader();
-          reader.onload = e => res(e.target.result);
-          reader.onerror = rej;
-          reader.readAsDataURL(compMediaFile);
-        });
-      } catch(_) { mediaUrl = ''; }
-    } else if (compMediaFile && compMediaType === 'image') {
-      // già in compMediaDataUrl (resize)
+
+    // Media: usa la dataUrl già elaborata (immagini resize via canvas)
+    // Per i video converte in dataUrl solo se ≤ 5MB, altrimenti scarta
+    let mediaUrl = '';
+    let mediaType = compMediaType || '';
+    let mediaName = compMediaName || '';
+
+    if (compMediaType === 'image' && compMediaDataUrl) {
+      mediaUrl = compMediaDataUrl; // già resizata
+    } else if (compMediaType === 'video' && compMediaFile) {
+      if (compMediaFile.size <= 5 * 1024 * 1024) {
+        try {
+          mediaUrl = await new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload = e => res(e.target.result || '');
+            reader.onerror = rej;
+            reader.readAsDataURL(compMediaFile);
+          });
+        } catch(_) { mediaUrl = ''; }
+      } else {
+        alert('Il video supera 5MB. Per ora è stato scartato: carica un video più corto o un\'immagine.');
+        mediaType = ''; mediaName = '';
+      }
+    } else if (compMediaDataUrl && !compMediaFile) {
+      // Editing un post esistente: mantieni la mediaUrl precedente
+      mediaUrl = compMediaDataUrl;
     }
 
     const data = {
@@ -488,8 +503,8 @@ async function publishComp() {
       tipo: document.getElementById('compTipo').value,
       canale: document.getElementById('compCanale').value,
       mediaUrl,
-      mediaType: compMediaType || '',
-      mediaName: compMediaName || '',
+      mediaType,
+      mediaName,
       zona: document.getElementById('compZona').value.trim(),
       frazioni: getCompFrazioni(),
       priorita: compPriority,
@@ -503,7 +518,7 @@ async function publishComp() {
     closeComposer();
   } catch(e) {
     console.error('Publish failed:', e);
-    alert('Errore durante la pubblicazione: ' + e.message);
+    alert('Errore durante la pubblicazione: ' + (e.message || e));
   } finally {
     btn.disabled = false; btn.textContent = 'Pubblica';
   }
@@ -511,14 +526,16 @@ async function publishComp() {
 
 async function saveCompDraft() {
   const { titolo, contenuto } = parseComposerText();
-  if (!titolo) { alert('Scrivi almeno un titolo.'); return; }
+  if (!titolo) { alert('Inserisci almeno un titolo.'); document.getElementById('compTitolo').focus(); return; }
   try {
     const allegati = await buildCompAllegatiPayload();
+    const mediaUrl = (compMediaType === 'image' && compMediaDataUrl) ? compMediaDataUrl
+      : (!compMediaFile && compMediaDataUrl) ? compMediaDataUrl : '';
     const data = {
       titolo, contenuto: contenuto || titolo,
       tipo: document.getElementById('compTipo').value,
       canale: document.getElementById('compCanale').value,
-      mediaUrl: compMediaDataUrl || '',
+      mediaUrl,
       mediaType: compMediaType || '',
       mediaName: compMediaName || '',
       zona: document.getElementById('compZona').value.trim(),
@@ -533,7 +550,7 @@ async function saveCompDraft() {
     closeComposer();
   } catch(e) {
     console.error('Draft failed:', e);
-    alert('Errore durante il salvataggio: ' + e.message);
+    alert('Errore durante il salvataggio: ' + (e.message || e));
   }
 }
 
