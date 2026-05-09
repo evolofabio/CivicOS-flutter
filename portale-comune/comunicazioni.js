@@ -7,6 +7,7 @@ let currentPostId = null;
 let uploadedFiles = [];
 let selectedPriority = 'normale';
 let comuneFrazioni = []; // frazioni del comune corrente
+let currentCanaleView = 'all';
 
 async function ensureFirebaseReady() {
   if (typeof window.civicosEnsureFirebaseSession === 'function') {
@@ -90,7 +91,12 @@ async function loadComunicazioni() {
   try {
     snapshot = await comuneRef.collection('comunicazioni').orderBy('dataTs', 'desc').get();
   } catch (e) {
-    snapshot = await comuneRef.collection('comunicazioni').orderBy('data', 'desc').get();
+    try {
+      snapshot = await comuneRef.collection('comunicazioni').orderBy('data', 'desc').get();
+    } catch (e2) {
+      // Fallback ultra-robusto: evita pagina vuota se campi/orderBy non sono allineati.
+      snapshot = await comuneRef.collection('comunicazioni').get();
+    }
   }
 
   const migrations = [];
@@ -173,6 +179,33 @@ function statoTag(stato) {
   return `<span class="status-tag" style="background:${map[stato]||'#aaa'};color:#fff;padding:3px 8px;border-radius:10px;font-size:11px">${stato}</span>`;
 }
 
+function canaleOf(c) {
+  if (c.canale) return String(c.canale).toLowerCase();
+  if (c.mediaUrl) return 'news';
+  return 'comunicazione';
+}
+
+function setCanaleView(view) {
+  currentCanaleView = view || 'all';
+  const tabAll = document.getElementById('tabAll');
+  const tabCom = document.getElementById('tabComunicazioni');
+  const tabNews = document.getElementById('tabNews');
+  if (tabAll) tabAll.classList.toggle('active', currentCanaleView === 'all');
+  if (tabCom) tabCom.classList.toggle('active', currentCanaleView === 'comunicazione');
+  if (tabNews) tabNews.classList.toggle('active', currentCanaleView === 'news');
+
+  const sectionTitle = document.getElementById('sectionTitle');
+  if (sectionTitle) {
+    sectionTitle.textContent =
+      currentCanaleView === 'news'
+        ? 'Sezione News'
+        : currentCanaleView === 'comunicazione'
+          ? 'Sezione Comunicazioni'
+          : 'Tutti i contenuti';
+  }
+  render();
+}
+
 // ── Render ──────────────────────────────────────────────────
 function render() {
   const list = document.getElementById('postsList');
@@ -182,6 +215,8 @@ function render() {
 
 
   let filtered = comunicazioni.filter(c => {
+    const canale = canaleOf(c);
+    if (currentCanaleView !== 'all' && canale !== currentCanaleView) return false;
     if (filterTipo && c.tipo !== filterTipo) return false;
     if (filterStato && c.stato !== filterStato) return false;
     if (search && !c.titolo.toLowerCase().includes(search) && !c.contenuto.toLowerCase().includes(search)) return false;
@@ -189,15 +224,19 @@ function render() {
   });
 
   if (!filtered.length) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#999">Nessuna comunicazione trovata</div>';
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#999">' +
+      (currentCanaleView === 'news' ? 'Nessuna news trovata' : 'Nessuna comunicazione trovata') +
+      '</div>';
   } else {
     list.innerHTML = filtered.map(c => {
       const attachCount = c.allegati.length;
       const bodyPreview = c.contenuto.length > 140 ? c.contenuto.substring(0, 140) + '…' : c.contenuto;
+      const canale = canaleOf(c);
       return `
         <div class="post-card tipo-${c.tipo}" onclick="viewPost('${escAttr(c.id)}')">
           <div class="post-header">
             ${tipoBadge(c.tipo)}
+            ${canale === 'news' ? '<span class="post-type-badge" style="background:#e8f5e9;color:#2E7D32">News</span>' : ''}
             <div class="post-title">${esc(c.titolo)}</div>
             <div class="post-date">${formatDate(c.data)}</div>
           </div>
@@ -238,7 +277,9 @@ function openNewPost() {
   document.getElementById('panelTitle').textContent = 'Nuovo avviso';
   document.getElementById('postTitolo').value = '';
   document.getElementById('postTipo').value = 'servizio';
+  document.getElementById('postCanale').value = 'comunicazione';
   document.getElementById('postCorpo').value = '';
+  document.getElementById('postMediaUrl').value = '';
   document.getElementById('fileList').innerHTML = '';
   document.getElementById('btnDelete').style.display = 'none';
   setPriority('normale');
@@ -259,7 +300,9 @@ function editPost(id) {
   document.getElementById('panelTitle').textContent = 'Modifica avviso';
   document.getElementById('postTitolo').value = c.titolo;
   document.getElementById('postTipo').value = c.tipo;
+  document.getElementById('postCanale').value = c.canale || 'comunicazione';
   document.getElementById('postCorpo').value = c.contenuto;
+  document.getElementById('postMediaUrl').value = c.mediaUrl || '';
   document.getElementById('btnDelete').style.display = 'inline-flex';
   setPriority(c.priorita);
   renderFileList();
@@ -284,6 +327,8 @@ function viewPost(id) {
       <span class="post-priority prio-${c.priorita}">${c.priorita.toUpperCase()}</span>
     </div>
     <div class="view-body">${esc(c.contenuto)}</div>
+    ${c.canale === 'news' ? '<div style="margin-top:8px;font-size:12px;color:#2E7D32;font-weight:600;">Canale: News</div>' : ''}
+    ${c.mediaUrl ? `<div style="margin-top:8px;"><a href="${escAttr(c.mediaUrl)}" target="_blank" rel="noopener">🔗 Apri contenuto multimediale</a></div>` : ''}
     ${c.zona ? `<div class=\"view-zona\" style=\"margin:10px 0 0 0;color:#1976d2;font-size:15px;\"><strong>Zona interessata:</strong> ${esc(c.zona)}</div>` : ''}`;
 
   if (c.allegati.length) {
@@ -373,25 +418,54 @@ function formatSize(bytes) {
   return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function buildAllegatiPayload() {
+  const IMAGE_PREVIEW_MAX_BYTES = 420000; // circa 410 KB
+  const items = await Promise.all(uploadedFiles.map(async (f) => {
+    const item = { nome: f.nome, tipo: f.tipo, dimensione: f.dimensione };
+    const file = f._file;
+    if (file && f.tipo === 'image' && file.size <= IMAGE_PREVIEW_MAX_BYTES) {
+      try {
+        item.dataUrl = await readFileAsDataUrl(file);
+      } catch (_) {}
+    }
+    return item;
+  }));
+  return items;
+}
+
 // ── Publish / Save / Delete ─────────────────────────────────
 async function publishPost() {
   const titolo = document.getElementById('postTitolo').value.trim();
   const contenuto = document.getElementById('postCorpo').value.trim();
+  const canale = document.getElementById('postCanale').value;
+  const mediaUrl = document.getElementById('postMediaUrl').value.trim();
   const zona = document.getElementById('postZona').value.trim();
+  const allegati = await buildAllegatiPayload();
   if (!titolo) { alert('Inserisci un titolo'); return; }
   if (!contenuto) { alert('Inserisci il contenuto'); return; }
 
   const data = {
     titolo,
     tipo: document.getElementById('postTipo').value,
+    canale,
     contenuto,
+    mediaUrl,
     zona,
     frazioni: getSelectedFrazioni(),
     priorita: selectedPriority,
     stato: 'attivo',
     data: todayISO(),
     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    allegati: uploadedFiles.map(f => ({ nome: f.nome, tipo: f.tipo, dimensione: f.dimensione }))
+    allegati
   };
   if (currentPostId) {
     data.id = currentPostId;
@@ -409,16 +483,19 @@ async function saveDraft() {
   const titolo = document.getElementById('postTitolo').value.trim();
   if (!titolo) { alert('Inserisci almeno un titolo'); return; }
 
+  const allegati = await buildAllegatiPayload();
   const data = {
     titolo,
     tipo: document.getElementById('postTipo').value,
+    canale: document.getElementById('postCanale').value,
     contenuto: document.getElementById('postCorpo').value.trim(),
+    mediaUrl: document.getElementById('postMediaUrl').value.trim(),
     zona: document.getElementById('postZona').value.trim(),
     frazioni: getSelectedFrazioni(),
     priorita: selectedPriority,
     stato: 'bozza',
     data: todayISO(),
-    allegati: uploadedFiles.map(f => ({ nome: f.nome, tipo: f.tipo, dimensione: f.dimensione }))
+    allegati
   };
   if (currentPostId) {
     data.id = currentPostId;
