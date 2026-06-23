@@ -13,27 +13,29 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 const firestore = firebase.firestore();
+const civicosAuth = typeof firebase.auth === 'function' ? firebase.auth() : null;
 
-// Garantisce una sessione Firebase valida prima delle write su Firestore.
-// Le regole richiedono request.auth != null anche per il portale comune.
 let _firebaseSessionReady = null;
+
 function civicosEnsureFirebaseSession() {
   if (_firebaseSessionReady) return _firebaseSessionReady;
   _firebaseSessionReady = (async function() {
-    if (!firebase.auth) return true;
-    const auth = firebase.auth();
-    if (auth.currentUser) return true;
-
-    // Disabilitato di default: se nel progetto Firebase l'anonimo non e' abilitato,
-    // la chiamata genera auth/admin-restricted-operation e rumore in console.
-    // Riabilitare solo se necessario per regole che richiedono request.auth.
-    return true;
+    if (!civicosAuth) return true;
+    return new Promise(function(resolve) {
+      var unsub = civicosAuth.onAuthStateChanged(function(user) {
+        unsub();
+        resolve(!!user);
+      });
+    });
   })();
   return _firebaseSessionReady;
 }
 
 // Ricava comuneId dalla sessione (es. "Vibo Valentia" → "vibo-valentia")
 function _normalizeComuneId(value) {
+  if (typeof window.civicosNormalizeComuneId === 'function') {
+    return window.civicosNormalizeComuneId(value) || null;
+  }
   if (!value || typeof value !== 'string') return null;
   return value.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')

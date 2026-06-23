@@ -2,6 +2,35 @@
 
 var segnalazioni = [];
 
+function looksLikeUid(value) {
+  var v = (value || '').toString().trim();
+  return /^[A-Za-z0-9]{20,}$/.test(v);
+}
+
+function resolveUtenteDisplay(data) {
+  var nome = (data.utenteNome || '').toString().trim();
+  var cognome = (data.utenteCognome || '').toString().trim();
+  var full = (nome + ' ' + cognome).trim();
+  if (full) return full;
+
+  var display = (data.utenteDisplay || '').toString().trim();
+  if (display && !looksLikeUid(display)) return display;
+
+  var email = (data.utenteEmail || data.email || '').toString().trim();
+  if (email) return email;
+
+  if (data.anonima === true) return 'Anonimo';
+  return 'Utente registrato';
+}
+
+function getFotoSrc(data) {
+  return (data.fotoUrl || data.fotoDataUrl || '').toString().trim();
+}
+
+function hasFoto(data) {
+  return Boolean(data.foto === true || getFotoSrc(data));
+}
+
 // Listener real-time Firestore
 function initSegnalazioniListener() {
   comuneRef.collection('segnalazioni').orderBy('timestamp', 'desc')
@@ -11,7 +40,7 @@ function initSegnalazioniListener() {
         var data = doc.data();
         data.id = doc.id;
         if (!data.segnalazioneId) data.segnalazioneId = doc.id;
-        data.utenteDisplay = data.utenteDisplay || data.utenteEmail || data.email || data.uid || 'Anonimo';
+        data.utenteDisplay = resolveUtenteDisplay(data);
         segnalazioni.push(data);
       });
       render();
@@ -94,7 +123,7 @@ function render() {
       '<td>' + (s.utenteDisplay || '-') + '</td>' +
       '<td>' + (s.posizione || '-') + '</td>' +
       '<td><span class="status ' + statusClass(s.stato) + '">' + s.stato + '</span></td>' +
-      '<td>' + (s.foto ? '📷' : '') + '</td>';
+      '<td>' + (hasFoto(s) ? '📷' : '') + '</td>';
     tbody.appendChild(tr);
   });
 
@@ -153,6 +182,7 @@ function renderMap(items) {
 function openDetail(s) {
   var panel = document.getElementById('detailPanel');
   var segId = s.segnalazioneId || s.id;
+  var fotoSrc = getFotoSrc(s);
   document.getElementById('detailTitle').textContent = segId + ' – ' + s.categoria;
 
   document.getElementById('detailContent').innerHTML =
@@ -163,11 +193,11 @@ function openDetail(s) {
     '<div class="detail-row"><span class="label">Descrizione</span><span class="value">' + s.descrizione + '</span></div>' +
     '<div class="detail-row"><span class="label">Posizione</span><span class="value">' + s.posizione + '</span></div>' +
     '<div class="detail-row"><span class="label">Stato attuale</span><span class="value"><span class="status ' + statusClass(s.stato) + '">' + s.stato + '</span></span></div>' +
-    (s.foto && s.fotoUrl
+    (hasFoto(s) && fotoSrc
       ? '<div style="margin-top:14px;"><span class="label" style="display:block;margin-bottom:6px;">📷 Foto allegata</span>' +
         '<div style="background:#f4f7fb;border-radius:10px;padding:10px;text-align:center;">' +
-        '<img src="' + s.fotoUrl + '" alt="Foto segnalazione" style="max-width:100%;max-height:260px;border-radius:8px;cursor:pointer;" onclick="window.open(this.src,\'_blank\')">' +
-        '<div style="margin-top:8px;"><a href="' + s.fotoUrl + '" download="foto_' + s.id + '.jpg" class="btn btn-outline" style="font-size:12px;">⬇️ Scarica foto</a></div>' +
+        '<img src="' + fotoSrc + '" alt="Foto segnalazione" style="max-width:100%;max-height:260px;border-radius:8px;cursor:pointer;" onclick="window.open(this.src,\'_blank\')">' +
+        '<div style="margin-top:8px;"><a href="' + fotoSrc + '" download="foto_' + s.id + '.jpg" class="btn btn-outline" style="font-size:12px;">⬇️ Scarica foto</a></div>' +
         '</div></div>'
       : '<div class="detail-row"><span class="label">Foto allegata</span><span class="value">No</span></div>');
 

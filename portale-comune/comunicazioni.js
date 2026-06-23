@@ -24,6 +24,7 @@ async function ensureFirebaseReady() {
 // ── Frazioni ────────────────────────────────────────────────
 async function loadFrazioniComune() {
   await ensureFirebaseReady();
+  await civicosRefreshComuneDoc();
   try {
     const doc = await comuneRef.get();
     if (doc.exists && doc.data().frazioni && doc.data().frazioni.length > 0) {
@@ -32,13 +33,7 @@ async function loadFrazioniComune() {
       return;
     }
   } catch(e) {}
-  try {
-    const auth = JSON.parse(sessionStorage.getItem('civicos_auth') || '{}');
-    const config = JSON.parse(localStorage.getItem('civicos_comuni_config') || '{}');
-    const f = config[auth.comune] && config[auth.comune].frazioni;
-    if (f && f.length) { comuneFrazioni = f; renderCompFrazioni(); return; }
-  } catch(e) {}
-  comuneFrazioni = [];
+  comuneFrazioni = civicosGetFrazioni();
   renderCompFrazioni();
 }
 

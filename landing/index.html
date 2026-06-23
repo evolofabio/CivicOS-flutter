@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LRS1BTMHM9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LRS1BTMHM9');
+</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CivicOS — La piattaforma digitale per i comuni italiani</title>
@@ -711,6 +720,86 @@ footer{background:#000;border-top:1px solid rgba(255,255,255,.06);padding:64px 4
 
 <!-- How it works -->
 <section class="how" id="come-funziona">
+
+<!-- MOCKUP OPERATORI RACCOLTA -->
+<section class="browser-section" id="operatori-raccolta" style="background:var(--d1)">
+  <div class="browser-wrap">
+    <div class="split-text">
+      <div class="eyebrow eyebrow-green reveal">Operatori raccolta</div>
+      <h2 class="reveal d1">Il giro giornaliero,<br>RFID e tracking live.</h2>
+      <p class="reveal d2">Gli operatori visualizzano il giro assegnato, leggono i secchi tramite RFID, registrano indirizzo e orario, segnalano anomalie e tutto viene tracciato su mappa in tempo reale.</p>
+      <div class="split-chips reveal d3">
+        <span class="chip">Giro assegnato</span>
+        <span class="chip">Lettura RFID</span>
+        <span class="chip">Tracking mappa</span>
+        <span class="chip">Segnalazione rapida</span>
+      </div>
+    </div>
+    <div class="browser-frame-outer reveal d2">
+      <div class="float-badge float-badge--tl">
+        <span class="fb-icon">&#128421;</span>
+        <div class="fb-text"><div class="fb-t1">RFID attivo</div><div class="fb-t2">Secchio letto: #A1F3</div></div>
+      </div>
+      <div class="browser-frame">
+        <div class="browser-chrome">
+          <div class="bc-dots"><span class="bc-dot bc-dot-r"></span><span class="bc-dot bc-dot-y"></span><span class="bc-dot bc-dot-g"></span></div>
+          <div class="bc-url"><span class="bc-url-lock">&#128274;</span>portale.civicos.it/operatori</div>
+        </div>
+        <div class="browser-body">
+          <div class="dash-layout">
+            <div class="dash-sidebar">
+              <div class="dash-sidebar-logo"><div class="dash-logo-dot"></div>CivicOS</div>
+              <div class="dash-nav-item active"><span class="dash-nav-icon">&#128230;</span>Giro Giornaliero</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128421;</span>RFID</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128205;</span>Mappa</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#9888;</span>Segnalazioni</div>
+            </div>
+            <div class="dash-main">
+              <div class="dash-header"><span class="dash-title">Giro di oggi</span><span class="dash-date">30 Mag 2026 &middot; Operatore Rossi</span></div>
+              <div style="margin-bottom:10px">
+                <div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:3px">Tappe assegnate</div>
+                <ul style="list-style:none;padding:0;margin:0;display:flex;gap:7px;flex-wrap:wrap">
+                  <li style="background:rgba(10,132,255,.09);border-radius:7px;padding:6px 13px;font-size:10px;font-weight:700;color:#0A84FF">Via Cavour, 12</li>
+                  <li style="background:rgba(48,209,88,.09);border-radius:7px;padding:6px 13px;font-size:10px;font-weight:700;color:#30D158">Via Nazionale, 43</li>
+                  <li style="background:rgba(255,159,10,.09);border-radius:7px;padding:6px 13px;font-size:10px;font-weight:700;color:#FF9F0A">Piazza Venezia, 2</li>
+                </ul>
+              </div>
+              <div style="display:flex;gap:12px;margin-bottom:10px">
+                <div style="flex:1;background:#fff;border-radius:10px;padding:13px 10px;box-shadow:0 1px 7px rgba(0,0,0,.07)">
+                  <div style="font-size:9px;font-weight:700;color:#616161;margin-bottom:3px">Ultima raccolta</div>
+                  <div style="font-size:12px;font-weight:800;color:#0D3B7A">#A1F3</div>
+                  <div style="font-size:8.5px;color:#4B5678">Via Nazionale, 43<br>09:18</div>
+                </div>
+                <div style="flex:1;background:#fff;border-radius:10px;padding:13px 10px;box-shadow:0 1px 7px rgba(0,0,0,.07)">
+                  <div style="font-size:9px;font-weight:700;color:#616161;margin-bottom:3px">Secchi raccolti</div>
+                  <div style="font-size:12px;font-weight:800;color:#30D158">7 / 12</div>
+                  <div style="font-size:8.5px;color:#4B5678">58%</div>
+                </div>
+                <div style="flex:1;background:#fff;border-radius:10px;padding:13px 10px;box-shadow:0 1px 7px rgba(0,0,0,.07)">
+                  <div style="font-size:9px;font-weight:700;color:#616161;margin-bottom:3px">Segnalazioni</div>
+                  <div style="font-size:12px;font-weight:800;color:#FF9F0A">1</div>
+                  <div style="font-size:8.5px;color:#4B5678">Abbandono rifiuti</div>
+                </div>
+              </div>
+              <div class="chart-area" style="min-height:90px">
+                <div class="chart-title">Tracking raccolta su mappa</div>
+                <div style="width:100%;height:60px;background:linear-gradient(90deg,#0A84FF22,#30D15822,#FF9F0A22);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#0D3B7A;font-size:11px;font-weight:700">[Mappa interattiva RFID]</div>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:10px">
+                <button style="background:linear-gradient(135deg,#0D3B7A,#1565C0);color:#fff;border:none;border-radius:980px;padding:10px 28px;font-size:12px;font-weight:800;box-shadow:0 2px 12px rgba(10,132,255,.18);cursor:pointer">Leggi RFID</button>
+                <button style="background:linear-gradient(135deg,#FF9F0A,#FF453A);color:#fff;border:none;border-radius:980px;padding:10px 28px;font-size:12px;font-weight:800;box-shadow:0 2px 12px rgba(255,159,10,.18);cursor:pointer">Segnala anomalia</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="float-badge float-badge--br">
+        <span class="fb-icon">&#128205;</span>
+        <div class="fb-text"><div class="fb-t1">Tracking live</div><div class="fb-t2">Mappa aggiornata</div></div>
+      </div>
+    </div>
+  </div>
+</section>
   <div style="max-width:1100px;margin:0 auto">
     <div class="section-header">
       <div class="eyebrow eyebrow-cyan reveal">Flusso operativo</div>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Gestione Utenti</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="utenti.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html">Dashboard</a>
+  <a href="segnalazioni.html">Segnalazioni</a>
+  <a href="prenotazioni.html">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="comunicazioni.html">Comunicazioni</a>
+  <a href="aziende.html">Aziende e Società</a>
+  <a href="mezzi.html">Mezzi e Dipendenti</a>
+  <a href="scadenze.html">Scadenze</a>
+  <a href="utenti.html" class="active">Utenti</a>
+  <a href="#" class="logout-link" onclick="civicosLogout()">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <div class="page-header">
+    <h1>Gestione Utenti</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Nuovo Utente</button>
+  </div>
+
+  <!-- Filtri -->
+  <div class="filters">
+    <select id="filterRuolo" onchange="applyFilters()">
+      <option value="">Tutti i ruoli</option>
+      <option value="operatore">Operatore</option>
+      <option value="sindaco">Sindaco</option>
+      <option value="vice_sindaco">Vice Sindaco</option>
+    </select>
+    <select id="filterStato" onchange="applyFilters()">
+      <option value="">Tutti gli stati</option>
+      <option value="attivo">Attivo</option>
+      <option value="disattivato">Disattivato</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="Cerca per nome o email..." oninput="applyFilters()">
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="card">
+      <h3>Totale Utenti</h3>
+      <p id="statTotale">0</p>
+    </div>
+    <div class="card">
+      <h3>Operatori</h3>
+      <p id="statOperatori">0</p>
+    </div>
+    <div class="card">
+      <h3>Sindaco</h3>
+      <p id="statSindaco">0</p>
+    </div>
+    <div class="card">
+      <h3>Vice Sindaco</h3>
+      <p id="statVice">0</p>
+    </div>
+  </div>
+
+  <!-- Tabella Utenti -->
+  <div class="table-box">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Ruolo</th>
+          <th>Telefono</th>
+          <th>Stato</th>
+          <th>Creato il</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody id="utentiTableBody">
+      </tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <p>Nessun utente trovato</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal Nuovo Utente -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nuovo Utente</h2>
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+
+    <form id="userForm" onsubmit="return handleSaveUser(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="uNome">Nome</label>
+          <input type="text" id="uNome" placeholder="Mario" required>
+        </div>
+        <div class="form-group">
+          <label for="uCognome">Cognome</label>
+          <input type="text" id="uCognome" placeholder="Rossi" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="uEmail">Email</label>
+        <input type="email" id="uEmail" placeholder="mario.rossi@comune.it" required>
+      </div>
+
+      <div class="form-group">
+        <label for="uRuolo">Mansione / Ruolo</label>
+        <select id="uRuolo" required onchange="updateRuoloInfo()">
+          <option value="">Seleziona un ruolo</option>
+          <option value="operatore">Operatore</option>
+          <option value="sindaco">Sindaco</option>
+          <option value="vice_sindaco">Vice Sindaco</option>
+        </select>
+        <div class="ruolo-info" id="ruoloInfo"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="uTelefono">Telefono</label>
+        <input type="tel" id="uTelefono" placeholder="+39 333 1234567">
+      </div>
+
+      <div class="form-group" id="passwordGroup">
+        <label for="uPassword">Password iniziale</label>
+        <div class="password-wrapper">
+          <input type="password" id="uPassword" placeholder="Minimo 6 caratteri" minlength="6" required>
+          <button type="button" class="toggle-pw" onclick="togglePw()">👁</button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annulla</button>
+        <button type="submit" class="btn btn-primary" id="saveBtn">Crea Utente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script src="portale-auth.js"></script>
+<script>
+/* ── Ruoli config ── */
+const ruoliConfig = {
+  operatore: {
+    label: 'Operatore',
+    color: '#1E4E8C',
+    bg: '#e3f2fd',
+    desc: 'Gestisce segnalazioni, prenotazioni e calendario raccolta rifiuti.'
+  },
+  sindaco: {
+    label: 'Sindaco',
+    color: '#2E7D32',
+    bg: '#e8f5e9',
+    desc: 'Accesso completo a tutte le funzionalità. Può gestire utenti e comunicazioni ufficiali.'
+  },
+  vice_sindaco: {
+    label: 'Vice Sindaco',
+    color: '#F57C00',
+    bg: '#fff3e0',
+    desc: 'Accesso a tutte le funzionalità. Supporta il sindaco nella gestione del comune.'
+  }
+};
+
+/* ── Firestore operatori ── */
+const comuneCorrente = civicosGetComune();
+const comuneId = civicosNormalizeComuneId(comuneCorrente);
+let operatoriList = [];
+
+function mapOperatoreDoc(doc) {
+  const d = doc.data();
+  const attivo = d.abilitato !== false && d.stato !== 'disattivato';
+  return {
+    id: doc.id,
+    nome: d.nome || '',
+    cognome: d.cognome || '',
+    email: d.email || '',
+    ruolo: d.ruolo || 'operatore',
+    telefono: d.telefono || '',
+    stato: attivo ? 'attivo' : 'disattivato',
+    creato: d.creato || '-'
+  };
+}
+
+function getUtenti() {
+  return operatoriList;
+}
+
+function listenOperatori() {
+  if (!comuneId || typeof comuneRef === 'undefined') return;
+  comuneRef.collection('operatori').onSnapshot(function(snap) {
+    operatoriList = snap.docs.map(mapOperatoreDoc);
+    renderTable();
+  }, function(err) {
+    console.error('[CivicOS] operatori listener', err);
+  });
+}
+
+/* ── Render ── */
+let editingId = null;
+
+function renderTable() {
+  const utenti = getFilteredUtenti();
+  const tbody = document.getElementById('utentiTableBody');
+  const empty = document.getElementById('emptyState');
+
+  if (utenti.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    updateStats();
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = utenti.map(u => {
+    const rc = ruoliConfig[u.ruolo] || ruoliConfig.operatore;
+    const statoClass = u.stato === 'attivo' ? 'status-done' : 'status-open';
+    const statoLabel = u.stato === 'attivo' ? 'Attivo' : 'Disattivato';
+    return `<tr>
+      <td><strong>${escapeHtml(u.nome)} ${escapeHtml(u.cognome)}</strong></td>
+      <td>${escapeHtml(u.email)}</td>
+      <td><span class="ruolo-badge" style="background:${rc.bg};color:${rc.color}">${rc.label}</span></td>
+      <td>${escapeHtml(u.telefono || '-')}</td>
+      <td><span class="status ${statoClass}">${statoLabel}</span></td>
+      <td>${u.creato}</td>
+      <td class="actions-cell">
+        <button class="btn-icon" title="Modifica" onclick="editUser('${escapeHtml(u.id)}')">✏️</button>
+        <button class="btn-icon" title="${u.stato === 'attivo' ? 'Disattiva' : 'Attiva'}" onclick="toggleStato('${escapeHtml(u.id)}')">${u.stato === 'attivo' ? '🔒' : '🔓'}</button>
+        <button class="btn-icon btn-icon-danger" title="Elimina" onclick="deleteUser('${escapeHtml(u.id)}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  updateStats();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function getFilteredUtenti() {
+  let list = getUtenti();
+  const ruolo = document.getElementById('filterRuolo').value;
+  const stato = document.getElementById('filterStato').value;
+  const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+  if (ruolo) list = list.filter(u => u.ruolo === ruolo);
+  if (stato) list = list.filter(u => u.stato === stato);
+  if (search) list = list.filter(u =>
+    (u.nome + ' ' + u.cognome).toLowerCase().includes(search) ||
+    u.email.toLowerCase().includes(search)
+  );
+  return list;
+}
+
+function updateStats() {
+  const all = getUtenti();
+  document.getElementById('statTotale').textContent = all.length;
+  document.getElementById('statOperatori').textContent = all.filter(u => u.ruolo === 'operatore').length;
+  document.getElementById('statSindaco').textContent = all.filter(u => u.ruolo === 'sindaco').length;
+  document.getElementById('statVice').textContent = all.filter(u => u.ruolo === 'vice_sindaco').length;
+}
+
+function applyFilters() {
+  renderTable();
+}
+
+/* ── Modal ── */
+function openModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Nuovo Utente';
+  document.getElementById('saveBtn').textContent = 'Crea Utente';
+  document.getElementById('userForm').reset();
+  document.getElementById('passwordGroup').style.display = '';
+  document.getElementById('uPassword').required = true;
+  document.getElementById('ruoloInfo').innerHTML = '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  editingId = null;
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function editUser(id) {
+  const utenti = getUtenti();
+  const u = utenti.find(x => x.id === id);
+  if (!u) return;
+
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Modifica Utente';
+  document.getElementById('saveBtn').textContent = 'Salva Modifiche';
+  document.getElementById('uNome').value = u.nome;
+  document.getElementById('uCognome').value = u.cognome;
+  document.getElementById('uEmail').value = u.email;
+  document.getElementById('uRuolo').value = u.ruolo;
+  document.getElementById('uTelefono').value = u.telefono || '';
+  document.getElementById('passwordGroup').style.display = 'none';
+  document.getElementById('uPassword').required = false;
+  updateRuoloInfo();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function handleSaveUser(e) {
+  e.preventDefault();
+  const utenti = getUtenti();
+
+  const nome = document.getElementById('uNome').value.trim();
+  const cognome = document.getElementById('uCognome').value.trim();
+  const email = document.getElementById('uEmail').value.trim();
+  const ruolo = document.getElementById('uRuolo').value;
+  const telefono = document.getElementById('uTelefono').value.trim();
+  const btn = document.getElementById('saveBtn');
+
+  const duplicate = utenti.find(u => u.email.toLowerCase() === email.toLowerCase() && u.id !== editingId);
+  if (duplicate) {
+    alert('Esiste già un utente con questa email.');
+    return false;
+  }
+
+  if (ruolo === 'sindaco') {
+    const existing = utenti.find(u => u.ruolo === 'sindaco' && u.id !== editingId && u.stato === 'attivo');
+    if (existing) {
+      alert('Esiste già un Sindaco attivo: ' + existing.nome + ' ' + existing.cognome);
+      return false;
+    }
+  }
+
+  if (ruolo === 'vice_sindaco') {
+    const existing = utenti.find(u => u.ruolo === 'vice_sindaco' && u.id !== editingId && u.stato === 'attivo');
+    if (existing) {
+      alert('Esiste già un Vice Sindaco attivo: ' + existing.nome + ' ' + existing.cognome);
+      return false;
+    }
+  }
+
+  btn.disabled = true;
+
+  if (editingId) {
+    comuneRef.collection('operatori').doc(editingId).update({
+      nome, cognome, email, ruolo, telefono,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() {
+      closeModal();
+      btn.disabled = false;
+    }).catch(function(err) {
+      alert(err.message || 'Errore salvataggio');
+      btn.disabled = false;
+    });
+  } else {
+    const password = document.getElementById('uPassword').value;
+    civicosCreateOperatoreViaFunction({
+      comuneId: comuneId,
+      email, password, nome, cognome, ruolo, telefono
+    }).then(function() {
+      closeModal();
+      btn.disabled = false;
+    }).catch(function(err) {
+      alert(err.message || 'Errore creazione utente');
+      btn.disabled = false;
+    });
+  }
+
+  return false;
+}
+
+function toggleStato(id) {
+  const utenti = getUtenti();
+  const u = utenti.find(x => x.id === id);
+  if (!u) return;
+  const attivo = u.stato === 'attivo';
+  const azione = attivo ? 'disattivare' : 'attivare';
+  if (!confirm('Vuoi ' + azione + ' l\'utente ' + u.nome + ' ' + u.cognome + '?')) return;
+  comuneRef.collection('operatori').doc(id).update({
+    abilitato: !attivo,
+    stato: attivo ? 'disattivato' : 'attivo',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+function deleteUser(id) {
+  const utenti = getUtenti();
+  const u = utenti.find(x => x.id === id);
+  if (!u) return;
+  if (!confirm('Disattivare definitivamente ' + u.nome + ' ' + u.cognome + '?')) return;
+  comuneRef.collection('operatori').doc(id).update({
+    abilitato: false,
+    stato: 'disattivato',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+function updateRuoloInfo() {
+  const ruolo = document.getElementById('uRuolo').value;
+  const info = document.getElementById('ruoloInfo');
+  if (ruolo && ruoliConfig[ruolo]) {
+    const rc = ruoliConfig[ruolo];
+    info.innerHTML = '<span style="color:' + rc.color + '">' + rc.desc + '</span>';
+  } else {
+    info.innerHTML = '';
+  }
+}
+
+function togglePw() {
+  const pw = document.getElementById('uPassword');
+  const btn = pw.parentElement.querySelector('.toggle-pw');
+  if (pw.type === 'password') {
+    pw.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    pw.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+/* ── Init ── */
+listenOperatori();
+</script>
+
+</body>
+</html>

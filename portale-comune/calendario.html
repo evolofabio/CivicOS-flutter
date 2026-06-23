@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Calendario</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="calendario.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html">Dashboard</a>
+  <a href="segnalazioni.html">Segnalazioni</a>
+  <a href="prenotazioni.html">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html" class="active">Calendario</a>
+  <a href="comunicazioni.html">Comunicazioni</a>
+  <a href="aziende.html">Aziende e Società</a>
+  <a href="mezzi.html">Mezzi e Dipendenti</a>
+  <a href="scadenze.html">Scadenze</a>
+  <a href="utenti.html">Utenti</a>
+  <a href="#" class="logout-link" onclick="civicosLogout()">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <!-- Section switcher -->
+  <div class="section-switcher">
+    <select id="sectionSelect" onchange="switchSection()">
+      <option value="differenziata">♻️ Raccolta Differenziata</option>
+      <option value="ingombranti">🚛 Raccolta Ingombranti</option>
+    </select>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- SECTION: Raccolta Differenziata             -->
+  <!-- ════════════════════════════════════════════ -->
+  <div id="sectionDifferenziata">
+
+    <div class="page-header">
+      <h1>Calendario Raccolta Differenziata</h1>
+      <div>
+        <button class="btn btn-outline" onclick="prevMonth('diff')">&larr; Mese prec.</button>
+        <span id="monthLabelDiff" style="font-size:16px;font-weight:600;margin:0 12px;"></span>
+        <button class="btn btn-outline" onclick="nextMonth('diff')">Mese succ. &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Comune & Frazioni selector -->
+    <div class="table-box" style="margin-bottom:24px;">
+      <h3 id="frazioniTitle" data-comune-label="🏛️ Comune di {comune} — Frazioni">🏛️ Frazioni</h3>
+      <p style="font-size:13px;color:#888;margin-bottom:12px;">Seleziona la frazione per visualizzare e gestire il calendario specifico. Ogni frazione ha un proprio programma di raccolta.</p>
+      <div class="frazioni-list" id="frazioniList"></div>
+    </div>
+
+    <div class="table-box" style="margin-bottom:24px;">
+      <h3>Programma settimanale</h3>
+      <p style="font-size:13px;color:#888;margin-bottom:12px;">Questo è il calendario che i cittadini vedono nell'app. Puoi bloccare singoli giorni per sospendere la raccolta.</p>
+      <table>
+        <thead>
+          <tr><th>Giorno</th><th>Tipi raccolta</th><th>Variazione</th><th>Azione</th></tr>
+        </thead>
+        <tbody id="weeklyBody"></tbody>
+      </table>
+    </div>
+
+    <div class="table-box">
+      <h3>Vista mensile</h3>
+      <div class="cal-grid">
+        <div class="cal-header">Lun</div><div class="cal-header">Mar</div><div class="cal-header">Mer</div>
+        <div class="cal-header">Gio</div><div class="cal-header">Ven</div><div class="cal-header">Sab</div><div class="cal-header">Dom</div>
+      </div>
+      <div class="cal-grid" id="calGridDiff"></div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- SECTION: Raccolta Ingombranti               -->
+  <!-- ════════════════════════════════════════════ -->
+  <div id="sectionIngombranti" style="display:none;">
+
+    <div class="page-header">
+      <h1>Calendario Raccolta Ingombranti</h1>
+      <div>
+        <button class="btn btn-outline" onclick="prevMonth('ing')">&larr; Mese prec.</button>
+        <span id="monthLabelIng" style="font-size:16px;font-weight:600;margin:0 12px;"></span>
+        <button class="btn btn-outline" onclick="nextMonth('ing')">Mese succ. &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats" style="margin-bottom:20px;">
+      <div class="card"><h3>Slot totali mese</h3><p id="statSlotTotal">0</p></div>
+      <div class="card"><h3>Prenotati</h3><p id="statSlotBooked">0</p></div>
+      <div class="card"><h3>Disponibili</h3><p id="statSlotFree">0</p></div>
+      <div class="card"><h3>Giorni bloccati</h3><p id="statSlotBlocked">0</p></div>
+    </div>
+
+    <!-- Slot config -->
+    <div class="table-box" style="margin-bottom:24px;">
+      <h3>Configurazione slot settimanali</h3>
+      <p style="font-size:13px;color:#888;margin-bottom:12px;">Imposta il numero massimo di ritiri ingombranti per ogni giorno della settimana.</p>
+      <table>
+        <thead>
+          <tr><th>Giorno</th><th>Slot disponibili</th><th>Fascia oraria</th><th>Azione</th></tr>
+        </thead>
+        <tbody id="ingWeeklyBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Monthly grid -->
+    <div class="table-box">
+      <h3>Vista mensile</h3>
+      <div class="cal-grid">
+        <div class="cal-header">Lun</div><div class="cal-header">Mar</div><div class="cal-header">Mer</div>
+        <div class="cal-header">Gio</div><div class="cal-header">Ven</div><div class="cal-header">Sab</div><div class="cal-header">Dom</div>
+      </div>
+      <div class="cal-grid" id="calGridIng"></div>
+    </div>
+
+    <!-- Bookings for selected day -->
+    <div class="table-box" style="margin-top:24px;" id="ingDayDetail" hidden>
+      <h3 id="ingDayTitle">Prenotazioni del giorno</h3>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Tipologia</th><th>Indirizzo</th><th>Note</th><th>Stato</th></tr>
+        </thead>
+        <tbody id="ingDayBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Side panel -->
+<div class="detail-overlay" id="blockPanel">
+  <button class="close-btn" onclick="closeBlock()">&times;</button>
+  <h2 id="blockTitle">Blocca data</h2>
+  <div id="blockContent"></div>
+  <div style="margin-top:12px;">
+    <label style="font-size:13px;color:#888;" id="blockReasonLabel">Motivo blocco:</label>
+    <input type="text" id="blockReason" placeholder="Es: Festa patronale, lavori stradali…" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;margin-top:6px;font-size:14px;" />
+  </div>
+  <div class="actions" id="blockActions"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script src="portale-auth.js"></script>
+<script src="calendario.js"></script>
+</body>
+</html>

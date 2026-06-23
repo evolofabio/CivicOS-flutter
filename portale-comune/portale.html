@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Portale Operatori</title>
+<link rel="stylesheet" href="auth.css">
+<style>
+.auth-container { max-width: 480px; }
+
+/* ── Sezione Login ── */
+.login-section {
+  margin-bottom: 24px;
+}
+.comune-select-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+.comune-select-wrapper select {
+  width: 100%;
+  padding: 13px 14px;
+  border: 2px solid #e0e6ed;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.comune-select-wrapper select:focus {
+  border-color: #0A58CA;
+  box-shadow: 0 0 0 3px rgba(10,88,202,0.1);
+}
+.comune-select-wrapper::after {
+  content: '▾';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  pointer-events: none;
+  font-size: 14px;
+}
+.no-comuni-msg {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 28px 0;
+  color: #bbb;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e0e6ed;
+}
+
+/* ── Registra Comune ── */
+.register-section {
+  text-align: center;
+}
+.register-section p {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 14px;
+}
+.btn-outline {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  color: #0A58CA;
+  border: 2px solid #0A58CA;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-outline:hover {
+  background: #0A58CA;
+  color: #fff;
+}
+
+/* ── Comune selected badge ── */
+.comune-badge-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #1E4E8C, #0A58CA);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.comune-badge-mini .stemma-mini {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.15);
+}
+.comune-badge-mini .avatar-mini {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  border: 2px solid rgba(255,255,255,.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.comune-badge-mini .badge-text {
+  flex: 1;
+}
+.comune-badge-mini .badge-text small {
+  display: block;
+  font-size: 10px;
+  opacity: 0.7;
+}
+.comune-badge-mini .badge-text strong {
+  font-size: 15px;
+}
+
+.login-error {
+  background: #fde8e8;
+  color: #E53935;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* ── Search per registrazione ── */
+.search-box {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box:focus {
+  border-color: #0A58CA;
+  box-shadow: 0 0 0 3px rgba(10,88,202,0.1);
+}
+.comuni-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+.comune-btn {
+  padding: 10px 12px;
+  border: 2px solid #e0e6ed;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a2e;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.comune-btn:hover {
+  border-color: #0A58CA;
+  background: #f0f6ff;
+}
+.comune-btn.selected {
+  border-color: #0A58CA;
+  background: #e3f0ff;
+  box-shadow: 0 0 0 3px rgba(10,88,202,0.15);
+}
+
+/* ── View toggle ── */
+.view-login, .view-register { display: none; }
+.view-login.active, .view-register.active { display: block; }
+</style>
+</head>
+<body class="auth-body">
+
+<div class="auth-container">
+
+  <img src="CivicOS-Remove.png" alt="CivicOS Logo" class="auth-logo">
+  <div class="auth-subtitle">Civic Operating System</div>
+  <div class="auth-description">Il sistema che unisce comune e cittadini</div>
+
+  <!-- ═══ VIEW: LOGIN ═══ -->
+  <div class="view-login active" id="viewLogin">
+    <div class="auth-card">
+      <h2>Accedi al portale</h2>
+
+      <div class="login-section" id="loginSection">
+        <div id="comuneSelector">
+          <label style="font-size:13px;font-weight:500;color:#444;display:block;margin-bottom:6px;">Seleziona il tuo Comune</label>
+          <div class="comune-select-wrapper">
+            <select id="comuneSelect" onchange="onComuneSelected()">
+              <option value="">— Scegli comune —</option>
+            </select>
+          </div>
+          <div class="no-comuni-msg" id="noComuniMsg" style="display:none;">
+            Nessun comune registrato.<br>Registra il primo comune qui sotto.
+          </div>
+        </div>
+
+        <div id="loginFields" style="display:none;">
+          <div id="comuneBadge"></div>
+          <div class="login-error" id="loginError"></div>
+
+          <form id="loginForm" onsubmit="return handleLogin(event)">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" placeholder="operatore@comune.it" required>
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="password" placeholder="••••••••" required minlength="6">
+                <button type="button" class="password-toggle" onclick="togglePassword()">👁</button>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" id="loginBtn">Accedi</button>
+          </form>
+          <a href="#" style="display:block;text-align:center;font-size:12px;color:#0A58CA;text-decoration:none;margin-top:10px;" onclick="resetComune()">← Cambia comune</a>
+        </div>
+      </div>
+
+      <div class="divider">oppure</div>
+
+      <div class="register-section">
+        <p>Il tuo comune non è ancora registrato?</p>
+        <button class="btn-outline" onclick="showRegister()">🏛️ Registra un nuovo Comune</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ VIEW: REGISTRA COMUNE ═══ -->
+  <div class="view-register" id="viewRegister">
+    <div class="auth-card">
+      <h2>Registra il tuo Comune</h2>
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">
+        Seleziona il comune da attivare sulla piattaforma CivicOS.
+      </p>
+
+      <input type="text" class="search-box" id="searchComune" placeholder="🔍 Cerca comune..." oninput="filterComuni()">
+
+      <div class="comuni-grid" id="comuniGrid"></div>
+
+      <button class="btn-primary" id="registerBtn" disabled onclick="proceedSetup()">Seleziona un comune</button>
+
+      <a href="#" style="display:block;text-align:center;font-size:12px;color:#0A58CA;text-decoration:none;margin-top:14px;" onclick="showLogin()">← Torna al login</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script>
+const COMUNI = [
+  'Acquaro','Arena','Briatico','Brognaturo','Capistrano','Cessaniti','Dasà','Dinami',
+  'Drapia','Fabrizia','Filadelfia','Filandari','Francavilla Angitola','Francica',
+  'Gerocarne','Ionadi','Joppolo','Limbadi','Maierato','Mileto','Mongiana',
+  'Monterosso Calabro','Nardodipace','Nicotera','Parghelia','Pizzo','Pizzoni','Polia',
+  'Ricadi','Rombiolo','San Calogero','San Costantino Calabro',"San Gregorio d'Ippona",
+  'San Nicola da Crissa',"Sant'Onofrio",'Serra San Bruno','Simbario','Soriano Calabro',
+  'Spadola','Spilinga','Stefanaconi','Tropea','Vallelonga','Vazzano','Vibo Valentia',
+  'Zaccanopoli','Zambrone','Zungri'
+];
+
+const stemmi = {
+  'Mileto': 'stemmi/mileto.png',
+  'Vibo Valentia': 'stemmi/vibo-valentia.png',
+  'Tropea': 'stemmi/tropea.png',
+  'Serra San Bruno': 'stemmi/serra-san-bruno.png',
+  'Nicotera': 'stemmi/nicotera.png'
+};
+
+let selectedRegComune = null;
+let configuredComuniCache = [];
+
+function comuneDocIdFromName(name) {
+  return civicosNormalizeComuneId(name);
+}
+
+function comuneNameFromDocId(docId) {
+  for (var i = 0; i < COMUNI.length; i++) {
+    if (comuneDocIdFromName(COMUNI[i]) === docId) return COMUNI[i];
+  }
+  return null;
+}
+
+async function refreshConfiguredComuni() {
+  configuredComuniCache = [];
+  try {
+    var snap = await firebase.firestore().collection('comuni').get();
+    snap.forEach(function(doc) {
+      var name = comuneNameFromDocId(doc.id);
+      if (!name) return;
+      var d = doc.data() || {};
+      if (d.sindaco || (Array.isArray(d.frazioni) && d.frazioni.length > 0)) {
+        if (configuredComuniCache.indexOf(name) === -1) configuredComuniCache.push(name);
+      }
+    });
+  } catch (e) {
+    console.warn('[CivicOS] refreshConfiguredComuni', e);
+  }
+  configuredComuniCache.sort();
+  populateComuneSelect();
+}
+
+function isConfigured(comune) {
+  return configuredComuniCache.indexOf(comune) >= 0;
+}
+
+function getConfiguredList() {
+  return configuredComuniCache.slice();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/* ── Login View ── */
+function populateComuneSelect() {
+  const sel = document.getElementById('comuneSelect');
+  const configured = getConfiguredList();
+
+  sel.innerHTML = '<option value="">— Scegli comune —</option>';
+  if (configured.length === 0) {
+    document.getElementById('noComuniMsg').style.display = 'block';
+    sel.style.display = 'none';
+    return;
+  }
+  document.getElementById('noComuniMsg').style.display = 'none';
+  sel.style.display = '';
+  configured.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+function onComuneSelected() {
+  const comune = document.getElementById('comuneSelect').value;
+  if (!comune) {
+    document.getElementById('loginFields').style.display = 'none';
+    document.getElementById('comuneSelector').style.display = '';
+    return;
+  }
+
+  // Show badge + login form
+  const badge = document.getElementById('comuneBadge');
+  const stemmaUrl = stemmi[comune];
+  let avatarHtml;
+  if (stemmaUrl) {
+    avatarHtml = '<img class="stemma-mini" src="' + stemmaUrl + '" alt="" onerror="this.outerHTML=\'<div class=avatar-mini>' + escapeHtml(comune).charAt(0) + '</div>\'">';
+  } else {
+    avatarHtml = '<div class="avatar-mini">' + escapeHtml(comune).charAt(0) + '</div>';
+  }
+  badge.innerHTML = '<div class="comune-badge-mini">' + avatarHtml +
+    '<div class="badge-text"><small>Portale del comune di</small><strong>' + escapeHtml(comune) + '</strong></div></div>';
+
+  document.getElementById('comuneSelector').style.display = 'none';
+  document.getElementById('loginFields').style.display = '';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('email').focus();
+}
+
+function resetComune() {
+  document.getElementById('comuneSelect').value = '';
+  document.getElementById('loginFields').style.display = 'none';
+  document.getElementById('comuneSelector').style.display = '';
+}
+
+function togglePassword() {
+  const pw = document.getElementById('password');
+  const btn = pw.nextElementSibling;
+  if (pw.type === 'password') { pw.type = 'text'; btn.textContent = '🙈'; }
+  else { pw.type = 'password'; btn.textContent = '👁'; }
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  const comune = document.getElementById('comuneSelect').value;
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errorEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+
+  if (!comune || !email || !password) return false;
+
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>';
+
+  civicosSignInOperatore(email, password, comune).then(function() {
+    window.location.href = 'index.html';
+  }).catch(function(err) {
+    errorEl.textContent = err.code ? civicosAuthErrorMessage(err.code) : (err.message || 'Errore di accesso');
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Accedi';
+  });
+
+  return false;
+}
+
+/* ── Register View ── */
+function showRegister() {
+  document.getElementById('viewLogin').classList.remove('active');
+  document.getElementById('viewRegister').classList.add('active');
+  renderComuni();
+}
+
+function showLogin() {
+  document.getElementById('viewRegister').classList.remove('active');
+  document.getElementById('viewLogin').classList.add('active');
+}
+
+function renderComuni(filter) {
+  const grid = document.getElementById('comuniGrid');
+  const term = (filter || '').toLowerCase();
+  const list = term ? COMUNI.filter(function(c) { return c.toLowerCase().includes(term); }) : COMUNI;
+
+  // Exclude already configured comuni
+  const available = list.filter(function(c) { return !isConfigured(c); });
+
+  if (available.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#999;font-size:13px;padding:20px;">' +
+      (term ? 'Nessun risultato' : 'Tutti i comuni sono già registrati') + '</div>';
+    return;
+  }
+
+  grid.innerHTML = available.map(function(c) {
+    var cls = 'comune-btn';
+    if (selectedRegComune === c) cls += ' selected';
+    return '<button class="' + cls + '" onclick="selectRegComune(\'' + c.replace(/'/g, "\\'") + '\')">' + escapeHtml(c) + '</button>';
+  }).join('');
+}
+
+function selectRegComune(comune) {
+  selectedRegComune = comune;
+  renderComuni(document.getElementById('searchComune').value);
+  var btn = document.getElementById('registerBtn');
+  btn.disabled = false;
+  btn.textContent = 'Configura ' + comune + ' →';
+}
+
+function filterComuni() {
+  renderComuni(document.getElementById('searchComune').value);
+}
+
+function proceedSetup() {
+  if (!selectedRegComune) return;
+  sessionStorage.setItem('civicos_comune_sel', selectedRegComune);
+  window.location.href = 'setup.html';
+}
+
+/* ── Init ── */
+refreshConfiguredComuni();
+</script>
+
+</body>
+</html>

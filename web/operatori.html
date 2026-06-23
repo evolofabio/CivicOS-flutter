@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Operatori Raccolta - CivicOS</title>
+  <meta name="description" content="Dashboard definitiva per operatori raccolta: login, giro, RFID, tracking, segnalazioni.">
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Manrope', sans-serif; background: #F4F7FF; color: #0D1735; margin: 0; }
+    .container { max-width: 480px; margin: 0 auto; padding: 0 0 38px; }
+    header { background: linear-gradient(135deg,#0D3B7A,#1565C0); color: #fff; padding: 32px 18px 22px; border-radius: 0 0 24px 24px; text-align: center; }
+    header h1 { font-size: 2rem; font-weight: 900; margin: 0 0 7px; }
+    header .subtitle { font-size: 1.1rem; font-weight: 500; opacity: .92; }
+    .login-box { background: #fff; border-radius: 13px; box-shadow: 0 2px 12px rgba(10,132,255,.07); padding: 22px 18px; margin: 22px 0 28px; }
+    .login-box label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #1565C0; }
+    .login-box input { width: 100%; padding: 11px 13px; border-radius: 8px; border: 1.5px solid #E0E7F6; margin-bottom: 14px; font-size: 15px; }
+    .login-box button { width: 100%; background: linear-gradient(135deg,#0D3B7A,#1565C0); color: #fff; border: none; border-radius: 980px; padding: 13px 0; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 6px; }
+    .hidden { display: none !important; }
+    .kpi-row { display: flex; gap: 12px; margin-bottom: 18px; }
+    .kpi-card { flex: 1; background: #fff; border-radius: 13px; box-shadow: 0 2px 12px rgba(10,132,255,.07); padding: 13px 10px; text-align: center; }
+    .kpi-label { font-size: 12px; color: #4B5678; font-weight: 700; margin-bottom: 2px; }
+    .kpi-value { font-size: 1.2rem; font-weight: 900; color: #0A84FF; }
+    .section { margin-bottom: 26px; }
+    .section-title { font-size: 1rem; font-weight: 800; margin-bottom: 8px; color: #1565C0; }
+    .giro-list { list-style: none; padding: 0; display: flex; gap: 7px; flex-wrap: wrap; }
+    .giro-list li { background: #E8EEF8; border-radius: 7px; padding: 6px 13px; font-size: 13px; font-weight: 700; color: #0A84FF; }
+    .rfid-box { background: #fff; border-radius: 13px; box-shadow: 0 2px 12px rgba(10,132,255,.07); padding: 13px 10px; margin-bottom: 13px; }
+    .rfid-label { font-size: 12px; color: #4B5678; font-weight: 700; margin-bottom: 2px; }
+    .rfid-value { font-size: 1.1rem; font-weight: 900; color: #30D158; }
+    .btn-row { display: flex; gap: 10px; margin-top: 8px; }
+    .btn { background: linear-gradient(135deg,#0D3B7A,#1565C0); color: #fff; border: none; border-radius: 980px; padding: 10px 18px; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 12px rgba(10,132,255,.18); transition: background .2s; }
+    .btn-warning { background: linear-gradient(135deg,#FF9F0A,#FF453A); }
+    .map-box { background: linear-gradient(90deg,#0A84FF22,#30D15822,#FF9F0A22); border-radius: 13px; height: 90px; display: flex; align-items: center; justify-content: center; color: #0D3B7A; font-size: .98rem; font-weight: 700; margin-bottom: 13px; }
+    .segnalazioni-box { background: #fff; border-radius: 13px; box-shadow: 0 2px 12px rgba(255,159,10,.07); padding: 13px 10px; }
+    .segnalazione { font-size: 13px; color: #FF9F0A; font-weight: 700; margin-bottom: 5px; }
+    @media(max-width:600px){.container{padding:0 0 18px;}.kpi-row{flex-direction:column;}.giro-list{flex-direction:column;}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Operatore Raccolta</h1>
+      <div class="subtitle" id="subtitle">Accedi e inizia il tuo giro giornaliero</div>
+    </header>
+    <div class="login-box" id="login-box">
+      <label for="user">Codice Operatore</label>
+      <input type="text" id="user" placeholder="Inserisci codice o badge" autocomplete="username">
+      <label for="pass">Password</label>
+      <input type="password" id="pass" placeholder="Password" autocomplete="current-password">
+      <button onclick="login()">Accedi</button>
+    </div>
+
+    <!-- Lista giri disponibili -->
+    <div id="giri-box" class="hidden" style="background:#fff;border-radius:13px;box-shadow:0 2px 12px rgba(10,132,255,.07);padding:22px 18px;margin:22px 0 28px;">
+      <div style="font-size:17px;font-weight:900;color:#0A84FF;margin-bottom:13px;">Seleziona il giro da effettuare</div>
+      <ul id="giri-list" style="list-style:none;padding:0;margin:0 0 18px 0;">
+        <!-- Popolato da JS -->
+      </ul>
+      <button class="btn" style="width:100%;" onclick="confermaGiro()">Conferma giro</button>
+    </div>
+    <div id="main-content" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:15px;font-weight:800;color:#0A84FF">Operatore: <span id="nome-operatore">Rossi</span></div>
+        <div id="stato-turno" style="font-size:13px;font-weight:700;color:#30D158;background:#E8F8F0;padding:4px 13px;border-radius:8px;">Turno attivo</div>
+      </div>
+      <div style="margin-bottom:18px">
+        <div style="font-size:12px;color:#4B5678;font-weight:700;margin-bottom:4px">Avanzamento giro</div>
+        <div style="background:#E8EEF8;border-radius:8px;height:13px;width:100%;overflow:hidden;position:relative">
+          <div id="progress-bar" style="background:linear-gradient(90deg,#0A84FF,#30D158);height:100%;width:58%;transition:width .4s"></div>
+        </div>
+        <div style="font-size:11px;color:#1565C0;font-weight:700;margin-top:2px"><span id="progress-text">7</span> di 12 tappe completate</div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Secchi raccolti</div>
+          <div class="kpi-value" id="kpi-secchi">7 / 12</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Ultimo RFID letto</div>
+          <div class="kpi-value" id="kpi-rfid">#A1F3</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Segnalazioni inviate</div>
+          <div class="kpi-value" id="kpi-segn">1</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Giro giornaliero assegnato</div>
+        <ul class="giro-list" id="giro-list">
+          <li>Via Cavour, 12</li>
+          <li>Via Nazionale, 43</li>
+          <li>Piazza Venezia, 2</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Lettura QR/RFID</div>
+        <div class="rfid-box">
+          <div class="rfid-label">Ultimo secchio letto</div>
+          <div class="rfid-value" id="rfid-value">#A1F3</div>
+          <div style="font-size:12px;color:#4B5678;">Via Nazionale, 43 &middot; 09:18</div>
+          <div class="btn-row">
+            <button class="btn" onclick="apriScannerQR()">Scansiona QR/RFID</button>
+            <button class="btn btn-warning" onclick="apriModaleSegnalazione()">Segnala anomalia</button>
+          </div>
+          <div id="rfid-feedback" style="display:none;margin-top:8px;font-size:12px;color:#30D158;font-weight:700;">Codice letto con successo!</div>
+        </div>
+      </div>
+
+      <!-- Modale scanner QR -->
+      <div id="modale-qr" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.18);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:18px;max-width:340px;width:90vw;padding:18px 10px 22px;box-shadow:0 8px 32px rgba(0,0,0,.13);margin:0 auto;display:flex;flex-direction:column;align-items:center;">
+          <div style="font-size:17px;font-weight:900;color:#0A84FF;margin-bottom:10px;">Scansiona QR/RFID</div>
+          <div id="reader" style="width:260px;max-width:90vw;"></div>
+          <button class="btn" style="margin-top:13px;width:100%;background:linear-gradient(135deg,#0D3B7A,#1565C0);" onclick="chiudiScannerQR()">Annulla</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Tracking raccolta su mappa</div>
+        <div class="map-box">
+          <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=12.4924%2C41.8902%2C12.4964%2C41.8922&amp;layer=mapnik" style="border:none;width:100%;height:100%;border-radius:13px;" allowfullscreen loading="lazy" title="Mappa RFID"></iframe>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Segnalazioni inviate</div>
+        <div class="segnalazioni-box" id="segnalazioni-box">
+          <div class="segnalazione">Abbandono rifiuti in Via Nazionale, 43</div>
+        </div>
+      </div>
+      <button class="btn" style="width:100%;margin-top:10px;background:linear-gradient(135deg,#30D158,#0A84FF);" onclick="terminaTurno()">Termina turno</button>
+      <div id="turno-feedback" style="display:none;margin-top:12px;font-size:14px;color:#1565C0;font-weight:800;text-align:center;">Turno chiuso! Dati inviati.</div>
+    </div>
+
+    <!-- Modale segnalazione -->
+    <div id="modale-segnalazione" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.18);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:18px;max-width:340px;width:90vw;padding:28px 18px;box-shadow:0 8px 32px rgba(0,0,0,.13);margin:0 auto;">
+        <div style="font-size:17px;font-weight:900;color:#0A84FF;margin-bottom:13px;">Nuova segnalazione</div>
+        <label style="font-size:13px;font-weight:700;color:#1565C0;">Motivo</label>
+        <select id="motivo-segn" style="width:100%;padding:9px 10px;border-radius:8px;border:1.5px solid #E0E7F6;margin-bottom:13px;font-size:14px;">
+          <option>Abbandono rifiuti</option>
+          <option>Errato smistamento</option>
+          <option>Altro</option>
+        </select>
+        <label style="font-size:13px;font-weight:700;color:#1565C0;">Note (opzionale)</label>
+        <textarea id="note-segn" rows="2" style="width:100%;padding:9px 10px;border-radius:8px;border:1.5px solid #E0E7F6;margin-bottom:13px;font-size:14px;"></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn btn-warning" onclick="inviaSegnalazione()">Invia</button>
+          <button class="btn" style="background:linear-gradient(135deg,#0D3B7A,#1565C0);" onclick="chiudiModaleSegnalazione()">Annulla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script>
+        let scanner = null;
+
+        function apriScannerQR() {
+          document.getElementById('modale-qr').style.display = 'flex';
+          if (!scanner) {
+            scanner = new Html5Qrcode("reader");
+          }
+          scanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 200 },
+            qrCodeSuccessCallback
+          ).catch(err => {
+            document.getElementById('reader').innerHTML = '<div style="color:#FF453A;font-weight:700;font-size:13px">Errore accesso fotocamera</div>';
+          });
+        }
+
+        function qrCodeSuccessCallback(decodedText, decodedResult) {
+          // Aggiorna RFID/QR letto
+          document.getElementById('rfid-value').textContent = decodedText;
+          document.getElementById('kpi-rfid').textContent = decodedText;
+          secchiRaccolti = Math.min(secchiRaccolti+1, secchiTotali);
+          aggiornaAvanzamento();
+          // Feedback visivo
+          const fb = document.getElementById('rfid-feedback');
+          fb.style.display = 'block';
+          setTimeout(()=>{fb.style.display='none';}, 1400);
+          chiudiScannerQR();
+        }
+
+        function chiudiScannerQR() {
+          document.getElementById('modale-qr').style.display = 'none';
+          if (scanner) {
+            scanner.stop().catch(()=>{});
+          }
+        }
+    // Stato demo
+    let secchiRaccolti = 7;
+    let secchiTotali = 12;
+    let turnoAttivo = true;
+    let nomeOperatore = 'Rossi';
+
+
+    // Demo giri disponibili
+    const giriDisponibili = [
+      { id: 1, nome: 'Giro Centro', zone: ['Via Cavour, 12', 'Via Nazionale, 43', 'Piazza Venezia, 2'] },
+      { id: 2, nome: 'Giro Prati', zone: ['Via Cola di Rienzo, 80', 'Piazza Mazzini, 5', 'Viale Angelico, 30'] },
+      { id: 3, nome: 'Giro Trastevere', zone: ['Viale Trastevere, 100', 'Piazza Trilussa, 1', 'Via della Scala, 50'] }
+    ];
+    let giroSelezionato = null;
+
+    function login() {
+      document.getElementById('login-box').classList.add('hidden');
+      document.getElementById('giri-box').classList.remove('hidden');
+      // Popola lista giri
+      const ul = document.getElementById('giri-list');
+      ul.innerHTML = '';
+      giriDisponibili.forEach((giro, idx) => {
+        const li = document.createElement('li');
+        li.style.marginBottom = '13px';
+        li.innerHTML = `<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:15px;font-weight:700;color:#0D1735;"><input type='radio' name='giro' value='${giro.id}' ${idx===0?'checked':''} style='accent-color:#0A84FF;margin-top:3px'>${giro.nome}<span style='font-size:12px;font-weight:500;color:#4B5678;margin-left:7px'>Zone: ${giro.zone.join(', ')}</span></label>`;
+        ul.appendChild(li);
+      });
+      giroSelezionato = giriDisponibili[0];
+      // Gestione cambio selezione
+      ul.querySelectorAll('input[type=radio]').forEach(radio => {
+        radio.addEventListener('change', e => {
+          const id = parseInt(e.target.value);
+          giroSelezionato = giriDisponibili.find(g => g.id === id);
+        });
+      });
+    }
+
+    function confermaGiro() {
+      document.getElementById('giri-box').classList.add('hidden');
+      document.getElementById('main-content').classList.remove('hidden');
+      document.getElementById('nome-operatore').textContent = nomeOperatore;
+      document.getElementById('subtitle').textContent = 'Benvenuto, ' + nomeOperatore + '!';
+      // Popola tappe giro
+      const ul = document.getElementById('giro-list');
+      ul.innerHTML = '';
+      giroSelezionato.zone.forEach(z => {
+        const li = document.createElement('li');
+        li.textContent = z;
+        ul.appendChild(li);
+      });
+      secchiTotali = giroSelezionato.zone.length;
+      secchiRaccolti = Math.floor(secchiTotali/2); // Demo progress
+      aggiornaAvanzamento();
+    }
+
+    function aggiornaAvanzamento() {
+      const perc = Math.round((secchiRaccolti/secchiTotali)*100);
+      document.getElementById('progress-bar').style.width = perc+'%';
+      document.getElementById('progress-text').textContent = secchiRaccolti;
+      document.getElementById('kpi-secchi').textContent = secchiRaccolti+' / '+secchiTotali;
+    }
+
+    function leggiRFID() {
+      // Placeholder: aggiorna RFID e KPI
+      secchiRaccolti = Math.min(secchiRaccolti+1, secchiTotali);
+      document.getElementById('rfid-value').textContent = '#'+Math.random().toString(16).substr(2,4).toUpperCase();
+      document.getElementById('kpi-rfid').textContent = document.getElementById('rfid-value').textContent;
+      aggiornaAvanzamento();
+      // Feedback visivo
+      const fb = document.getElementById('rfid-feedback');
+      fb.style.display = 'block';
+      setTimeout(()=>{fb.style.display='none';}, 1400);
+    }
+
+    function apriModaleSegnalazione() {
+      document.getElementById('modale-segnalazione').style.display = 'flex';
+      document.getElementById('motivo-segn').value = 'Abbandono rifiuti';
+      document.getElementById('note-segn').value = '';
+    }
+    function chiudiModaleSegnalazione() {
+      document.getElementById('modale-segnalazione').style.display = 'none';
+    }
+    function inviaSegnalazione() {
+      const motivo = document.getElementById('motivo-segn').value;
+      const note = document.getElementById('note-segn').value;
+      const box = document.getElementById('segnalazioni-box');
+      const div = document.createElement('div');
+      div.className = 'segnalazione';
+      div.textContent = motivo + (note ? ' — ' + note : '') + ' (' + new Date().toLocaleTimeString() + ')';
+      box.appendChild(div);
+      document.getElementById('kpi-segn').textContent = parseInt(document.getElementById('kpi-segn').textContent)+1;
+      chiudiModaleSegnalazione();
+    }
+
+    function terminaTurno() {
+      turnoAttivo = false;
+      document.getElementById('stato-turno').textContent = 'Turno chiuso';
+      document.getElementById('stato-turno').style.background = '#F8E8E8';
+      document.getElementById('stato-turno').style.color = '#FF453A';
+      document.getElementById('turno-feedback').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

@@ -10,6 +10,10 @@ var _comuniStemmi = {
 /* ── CivicOS Portale – Auth & Comune shared logic ── */
 
 (function () {
+  var page = (location.pathname.split('/').pop() || '').toLowerCase();
+  var publicPages = ['portale.html', 'login.html', 'setup.html', 'registrazione.html'];
+  if (publicPages.indexOf(page) >= 0) return;
+
   // Auth guard
   var auth = sessionStorage.getItem('civicos_auth');
   if (!auth || !JSON.parse(auth).loggedIn) {
@@ -86,6 +90,10 @@ var _comuniStemmi = {
   }
 
   setupA11yAndMobileSidebar();
+
+  if (typeof civicosRefreshComuneDoc === 'function') {
+    civicosRefreshComuneDoc();
+  }
 
   function setupSidebarLogo() {
     var logoImg = document.querySelector('.sidebar > div img, .sidebar .sidebar-brand img');
@@ -197,23 +205,39 @@ function civicosGetComune() {
   return auth ? auth.comune : null;
 }
 
+var _firestoreComuneCache = null;
+
+async function civicosRefreshComuneDoc() {
+  if (typeof comuneRef === 'undefined' || !comuneRef) return null;
+  try {
+    if (typeof civicosEnsureFirebaseSession === 'function') {
+      await civicosEnsureFirebaseSession();
+    }
+    var doc = await comuneRef.get();
+    if (doc.exists) _firestoreComuneCache = doc.data();
+    return _firestoreComuneCache;
+  } catch (e) {
+    console.warn('[CivicOS] civicosRefreshComuneDoc', e);
+    return null;
+  }
+}
+
 function civicosGetComuneConfig() {
-  var comune = civicosGetComune();
-  if (!comune) return null;
-  var raw = localStorage.getItem('civicos_comuni_config');
-  if (!raw) return null;
-  var all = JSON.parse(raw);
-  return all[comune] || null;
+  if (_firestoreComuneCache) return _firestoreComuneCache;
+  return null;
 }
 
 function civicosGetFrazioni() {
+  if (_firestoreComuneCache && Array.isArray(_firestoreComuneCache.frazioni)) {
+    return _firestoreComuneCache.frazioni;
+  }
   var config = civicosGetComuneConfig();
-  return (config && config.frazioni) ? config.frazioni : [];
-}
-
-function civicosStorageKey(prefix) {
+  if (config && config.frazioni && config.frazioni.length) return config.frazioni;
   var comune = civicosGetComune();
-  return comune ? prefix + '_' + comune : prefix;
+  if (comune && typeof civicosDefaultFrazioni === 'function') {
+    return civicosDefaultFrazioni(comune);
+  }
+  return [];
 }
 
 /* Coordinate GPS dei comuni della provincia di Vibo Valentia */
@@ -247,6 +271,25 @@ function civicosGetComuneCoords() {
 }
 
 function civicosLogout() {
-  sessionStorage.removeItem('civicos_auth');
-  window.location.href = 'portale.html';
+  var go = function() { window.location.href = 'portale.html'; };
+  if (typeof civicosSignOutOperatore === 'function') {
+    civicosSignOutOperatore().finally(go);
+  } else {
+    sessionStorage.removeItem('civicos_auth');
+    go();
+  }
+}
+
+// Verifica sessione Firebase su pagine protette (se SDK caricato).
+if (typeof firebase !== 'undefined' && firebase.auth) {
+  firebase.auth().onAuthStateChanged(function(user) {
+    var sess = civicosGetAuth();
+    if (!sess || !sess.loggedIn) return;
+    if (!user || (sess.uid && user.uid !== sess.uid)) {
+      sessionStorage.removeItem('civicos_auth');
+      if (!/portale\.html|login\.html|setup\.html|registrazione\.html/i.test(location.pathname)) {
+        window.location.href = 'portale.html';
+      }
+    }
+  });
 }

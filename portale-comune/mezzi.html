@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Mezzi e Dipendenti Comunali</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html">Dashboard</a>
+  <a href="segnalazioni.html">Segnalazioni</a>
+  <a href="prenotazioni.html">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="comunicazioni.html">Comunicazioni</a>
+  <a href="aziende.html">Aziende e Società</a>
+  <a href="mezzi.html" class="active">Mezzi e Dipendenti</a>
+  <a href="scadenze.html">Scadenze</a>
+  <a href="utenti.html">Utenti</a>
+  <a href="#" class="logout-link" onclick="civicosLogout()">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <!-- Pannello attivazione -->
+  <div id="servicePanel" class="service-activation-panel">
+    <div class="service-activation-header">
+      <div class="service-activation-info">
+        <span class="service-activation-icon" id="serviceIcon">●</span>
+        <div>
+          <strong id="serviceStatusLabel">Sezione disattivata</strong>
+          <p id="servicePeriodLabel" style="font-size:12px;color:#888;margin:2px 0 0;">Attiva questa sezione per gestire mezzi e dipendenti comunali</p>
+        </div>
+      </div>
+      <div class="service-activation-toggle">
+        <label class="switch">
+          <input type="checkbox" id="serviceToggle" onchange="toggleSection()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div id="sectionContent">
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabMezzi" onclick="switchTab('mezzi')">🚛 Mezzi Comunali</button>
+    <button class="tab-btn" id="tabDipendenti" onclick="switchTab('dipendenti')">👷 Dipendenti Comunali</button>
+  </div>
+
+  <!-- === TAB MEZZI === -->
+  <div id="panelMezzi">
+    <div class="page-header">
+      <h1>🚛 Mezzi Comunali</h1>
+      <button class="btn btn-primary" onclick="openMezzoModal()">+ Nuovo Mezzo</button>
+    </div>
+    <div class="stats">
+      <div class="card"><h3>Totale mezzi</h3><p id="statMezzi">0</p></div>
+      <div class="card"><h3>Operativi</h3><p id="statOperativi">0</p></div>
+      <div class="card"><h3>In manutenzione</h3><p id="statManutenzione">0</p></div>
+      <div class="card"><h3>Fuori servizio</h3><p id="statFuoriServizio">0</p></div>
+    </div>
+    <div class="filters">
+      <select id="filterTipoMezzo">
+        <option value="">Tutti i tipi</option>
+        <option value="Autocarro">Autocarro</option>
+        <option value="Autovettura">Autovettura</option>
+        <option value="Furgone">Furgone</option>
+        <option value="Mezzo speciale">Mezzo speciale</option>
+        <option value="Altro">Altro</option>
+      </select>
+      <select id="filterStatoMezzo">
+        <option value="">Tutti gli stati</option>
+        <option value="Operativo">Operativo</option>
+        <option value="In manutenzione">In manutenzione</option>
+        <option value="Fuori servizio">Fuori servizio</option>
+      </select>
+      <input type="text" id="filterSearchMezzo" placeholder="Cerca mezzo…">
+      <button class="btn btn-outline" onclick="exportMezziExcel()" style="margin-left:auto;">📥 Excel</button>
+      <button class="btn btn-outline" onclick="exportMezziPDF()">📄 PDF</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table" id="mezziTable">
+        <thead><tr>
+          <th>Targa</th><th>Tipo</th><th>Marca/Modello</th><th>Assegnato a</th><th>Stato</th><th>Scad. revisione</th><th>Scad. assicurazione</th><th></th>
+        </tr></thead>
+        <tbody id="mezziBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- === TAB DIPENDENTI === -->
+  <div id="panelDipendenti" style="display:none">
+    <div class="page-header">
+      <h1>👷 Dipendenti Comunali</h1>
+      <button class="btn btn-primary" onclick="openDipComunaleModal()">+ Nuovo Dipendente</button>
+    </div>
+    <div class="stats">
+      <div class="card"><h3>Totale dipendenti</h3><p id="statDipCom">0</p></div>
+      <div class="card"><h3>In servizio</h3><p id="statInServizio">0</p></div>
+      <div class="card"><h3>Categorie</h3><p id="statCategorie">0</p></div>
+    </div>
+    <div class="filters">
+      <select id="filterCategoria">
+        <option value="">Tutte le categorie</option>
+        <option value="Amministrativo">Amministrativo</option>
+        <option value="Tecnico">Tecnico</option>
+        <option value="Vigili urbani">Vigili urbani</option>
+        <option value="Operaio">Operaio</option>
+        <option value="Dirigente">Dirigente</option>
+        <option value="Altro">Altro</option>
+      </select>
+      <input type="text" id="filterSearchDip" placeholder="Cerca dipendente…">
+      <button class="btn btn-outline" onclick="exportDipComunaliExcel()" style="margin-left:auto;">📥 Excel</button>
+      <button class="btn btn-outline" onclick="exportDipComunaliPDF()">📄 PDF</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table" id="dipComunaliTable">
+        <thead><tr>
+          <th>Nome</th><th>Codice Fiscale</th><th>Categoria</th><th>Ufficio/Area</th><th>Telefono</th><th>Email</th><th>Data assunzione</th><th></th>
+        </tr></thead>
+        <tbody id="dipComunaliBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  </div><!-- /sectionContent -->
+</div>
+
+<!-- Modal Mezzo -->
+<div class="modal-overlay" id="mezzoModal">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeMezzoModal()">&times;</button>
+    <h2 id="mezzoModalTitle">Nuovo Mezzo</h2>
+    <input type="hidden" id="editMezzoId">
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label>Targa</label><input type="text" id="mzTarga" placeholder="AA 000 BB"></div>
+      <div class="form-group" style="flex:1"><label>Tipo</label>
+        <select id="mzTipo">
+          <option>Autocarro</option><option>Autovettura</option><option>Furgone</option><option>Mezzo speciale</option><option>Altro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label>Marca</label><input type="text" id="mzMarca" placeholder="Iveco"></div>
+      <div class="form-group" style="flex:1"><label>Modello</label><input type="text" id="mzModello" placeholder="Daily 35S14"></div>
+    </div>
+    <div class="form-group"><label>Assegnato a (dipendente/ufficio)</label><input type="text" id="mzAssegnato" placeholder="Ufficio tecnico"></div>
+    <div class="form-group"><label>Stato</label>
+      <select id="mzStato">
+        <option>Operativo</option><option>In manutenzione</option><option>Fuori servizio</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label>Scadenza revisione</label><input type="date" id="mzRevisione"></div>
+      <div class="form-group" style="flex:1"><label>Scadenza assicurazione</label><input type="date" id="mzAssicurazione"></div>
+    </div>
+    <div class="form-group"><label>Note</label><textarea id="mzNote" rows="2" placeholder="Note aggiuntive…" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;"></textarea></div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="saveMezzo()">Salva</button>
+      <button class="btn btn-outline" onclick="closeMezzoModal()">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dipendente Comunale -->
+<div class="modal-overlay" id="dipComunaleModal">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeDipComunaleModal()">&times;</button>
+    <h2 id="dipComModalTitle">Nuovo Dipendente</h2>
+    <input type="hidden" id="editDipComId">
+    <div class="form-group"><label>Nome e Cognome</label><input type="text" id="dcNome" placeholder="Mario Rossi"></div>
+    <div class="form-group"><label>Codice Fiscale</label><input type="text" id="dcCF" placeholder="RSSMRA80A01F205X"></div>
+    <div class="form-group"><label>Categoria</label>
+      <select id="dcCategoria">
+        <option>Amministrativo</option><option>Tecnico</option><option>Vigili urbani</option><option>Operaio</option><option>Dirigente</option><option>Altro</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Ufficio / Area</label><input type="text" id="dcUfficio" placeholder="Ufficio tecnico"></div>
+    <div class="form-group"><label>Telefono</label><input type="text" id="dcTelefono" placeholder="333 1234567"></div>
+    <div class="form-group"><label>Email</label><input type="text" id="dcEmail" placeholder="mario.rossi@comune.it"></div>
+    <div class="form-group"><label>Data assunzione</label><input type="date" id="dcAssunzione"></div>
+    <div class="form-group"><label>Note</label><textarea id="dcNote" rows="2" placeholder="Note…" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;"></textarea></div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="saveDipComunale()">Salva</button>
+      <button class="btn btn-outline" onclick="closeDipComunaleModal()">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="civicos-firestore.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script src="portale-auth.js"></script>
+<script src="mezzi.js"></script>
+
+<style>
+.switch { position:relative; display:inline-block; width:50px; height:26px; }
+.switch input { opacity:0; width:0; height:0; }
+.slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; border-radius:26px; transition:.3s; }
+.slider:before { position:absolute; content:""; height:20px; width:20px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; }
+.switch input:checked + .slider { background:#2E7D32; }
+.switch input:checked + .slider:before { transform:translateX(24px); }
+.service-activation-panel { background:#fff; border-radius:10px; padding:18px 20px; margin-bottom:20px; border:1px solid #e0e4ea; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.service-activation-header { display:flex; align-items:center; justify-content:space-between; }
+.service-activation-info { display:flex; align-items:center; gap:12px; }
+.service-activation-icon { font-size:22px; line-height:1; }
+.service-disabled-overlay { opacity:.45; pointer-events:none; }
+
+.tab-bar { display:flex; gap:0; margin-bottom:20px; border-bottom:2px solid #e0e4ea; }
+.tab-btn { background:none; border:none; padding:12px 24px; font-size:15px; font-weight:600; color:#888; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:.2s; }
+.tab-btn.active { color:#1E4E8C; border-bottom-color:#1E4E8C; }
+.tab-btn:hover { color:#1E4E8C; }
+
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.4); z-index:500; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:#fff; border-radius:14px; padding:28px; width:520px; max-height:90vh; overflow-y:auto; position:relative; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+.modal-box h2 { font-size:20px; color:#1E4E8C; margin-bottom:18px; }
+.modal-box .close-btn { position:absolute; top:14px; right:14px; background:none; border:none; font-size:24px; cursor:pointer; color:#888; }
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:13px; font-weight:600; color:#555; margin-bottom:4px; }
+.form-group input, .form-group select { width:100%; padding:9px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; outline:none; }
+.form-group input:focus, .form-group select:focus { border-color:#1E4E8C; }
+.form-row { display:flex; gap:14px; }
+
+.status-operativo { background:#e8f5e9; color:#2E7D32; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+.status-manutenzione { background:#fff3e0; color:#E65100; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+.status-fuori { background:#ffebee; color:#C62828; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+</style>
+</body>
+</html>

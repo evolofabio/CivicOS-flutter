@@ -2,8 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../core/services/tenant_refs.dart';
 
 /// Top-level background handler required by `firebase_messaging`.
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -15,11 +16,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class FirebaseMessagingService {
   FirebaseMessagingService._();
 
-  static final FirebaseMessagingService _instance = FirebaseMessagingService._();
+  static final FirebaseMessagingService _instance =
+      FirebaseMessagingService._();
 
   factory FirebaseMessagingService() => _instance;
 
-  static const _topicPrefsKey = 'civicos_fcm_topic';
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'civicos_avvisi',
     'Avvisi CivicOS',
@@ -31,6 +32,7 @@ class FirebaseMessagingService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  String? _sessionTopic;
 
   Future<String?> _safeGetToken() async {
     try {
@@ -48,7 +50,9 @@ class FirebaseMessagingService {
   String topicForComune(String comuneId) => 'comune_$comuneId';
 
   Future<void> _initLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const darwinSettings = DarwinInitializationSettings();
 
     await _localNotifications.initialize(
@@ -61,12 +65,14 @@ class FirebaseMessagingService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(_channel);
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.requestNotificationsPermission();
   }
 
@@ -76,14 +82,28 @@ class FirebaseMessagingService {
     final token = await _safeGetToken();
     if (token == null || token.isEmpty) return;
 
-    await FirebaseFirestore.instance.collection('utenti').doc(user.uid).set({
+    final tokenData = {
       'email': user.email ?? '',
       'comuneId': comuneId ?? '',
       'fcmToken': token,
       'fcmTokens': FieldValue.arrayUnion([token]),
       'pushEnabled': true,
       'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
+
+    // Salva nel bootstrap globale (identificazione al login).
+    await TenantRefs.bootstrapDoc(
+      user.uid,
+    ).set(tokenData, SetOptions(merge: true));
+
+    // Se il comune è noto, salva anche nel profilo tenant-scoped.
+    final cid = comuneId ?? '';
+    if (cid.isNotEmpty) {
+      await TenantRefs.utentiDoc(
+        cid,
+        user.uid,
+      ).set(tokenData, SetOptions(merge: true));
+    }
   }
 
   /// Call during app startup after Firebase.initializeApp().
@@ -91,13 +111,18 @@ class FirebaseMessagingService {
     if (_initialized) return;
     try {
       await Firebase.initializeApp();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[FCM] Firebase.initializeApp error: $e');
+    }
 
     await _initLocalNotifications();
 
     // Request permission on all supported platforms
     final settings = await _messaging.requestPermission(
-        alert: true, badge: true, sound: true);
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     print('FCM permission: ${settings.authorizationStatus}');
 
     // Get token
@@ -113,25 +138,8 @@ class FirebaseMessagingService {
     // Foreground message handler
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       print('Foreground message: ${message.notification?.title}');
-      final notification = message.notification;
-      if (notification != null) {
-        await _localNotifications.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'civicos_avvisi',
-              'Avvisi CivicOS',
-              channelDescription:
-                  'Notifiche su comunicazioni e avvisi del comune',
-              importance: Importance.high,
-              priority: Priority.high,
-            ),
-            iOS: DarwinNotificationDetails(),
-          ),
-        );
-      }
+      // Evita duplicati: in foreground le notifiche sono gestite dal listener
+      // Firestore in app.dart (_startNotificaListener).
     });
 
     // When app opened from a terminated state by a message
@@ -153,11 +161,26 @@ class FirebaseMessagingService {
     if (comuneId.isEmpty) return;
     await init();
 
-    final prefs = await SharedPreferences.getInstance();
-    final previousTopic = prefs.getString(_topicPrefsKey);
+    final user = FirebaseAuth.instance.currentUser;
+    String? previousTopic = _sessionTopic;
+    if (user != null) {
+      try {
+        final doc = await TenantRefs.bootstrapDoc(user.uid).get();
+        final data = doc.data();
+        final remoteTopic = data?['fcmTopic'] as String?;
+        if (remoteTopic != null && remoteTopic.isNotEmpty) {
+          previousTopic = remoteTopic;
+        }
+      } catch (e) {
+        debugPrint('[FCM] syncComuneSubscription bootstrap read error: $e');
+      }
+    }
+
     final nextTopic = topicForComune(comuneId);
 
-    if (previousTopic != null && previousTopic.isNotEmpty && previousTopic != nextTopic) {
+    if (previousTopic != null &&
+        previousTopic.isNotEmpty &&
+        previousTopic != nextTopic) {
       try {
         await _messaging.unsubscribeFromTopic(previousTopic);
       } on FirebaseException catch (e) {
@@ -173,15 +196,48 @@ class FirebaseMessagingService {
         if (e.code != 'apns-token-not-set') rethrow;
         print('FCM topic subscribe skipped: ${e.message}');
       }
-      await prefs.setString(_topicPrefsKey, nextTopic);
+      _sessionTopic = nextTopic;
+      if (user != null) {
+        try {
+          // Aggiorna topic nel bootstrap globale e nel profilo tenant-scoped.
+          final topicData = {
+            'fcmTopic': nextTopic,
+            'updatedAt': FieldValue.serverTimestamp(),
+          };
+          await Future.wait([
+            TenantRefs.bootstrapDoc(
+              user.uid,
+            ).set(topicData, SetOptions(merge: true)),
+            TenantRefs.utentiDoc(
+              comuneId,
+              user.uid,
+            ).set(topicData, SetOptions(merge: true)),
+          ]);
+        } catch (e) {
+          debugPrint('[FCM] syncComuneSubscription topic update error: $e');
+        }
+      }
     }
 
     await _storeTokenForCurrentUser(comuneId: comuneId);
   }
 
   Future<void> clearComuneSubscription() async {
-    final prefs = await SharedPreferences.getInstance();
-    final previousTopic = prefs.getString(_topicPrefsKey);
+    final user = FirebaseAuth.instance.currentUser;
+    String? previousTopic = _sessionTopic;
+    if (user != null) {
+      try {
+        final doc = await TenantRefs.bootstrapDoc(user.uid).get();
+        final data = doc.data();
+        final remoteTopic = data?['fcmTopic'] as String?;
+        if (remoteTopic != null && remoteTopic.isNotEmpty) {
+          previousTopic = remoteTopic;
+        }
+      } catch (e) {
+        debugPrint('[FCM] clearComuneSubscription bootstrap read error: $e');
+      }
+    }
+
     if (previousTopic != null && previousTopic.isNotEmpty) {
       try {
         await _messaging.unsubscribeFromTopic(previousTopic);
@@ -189,7 +245,17 @@ class FirebaseMessagingService {
         if (e.code != 'apns-token-not-set') rethrow;
         print('FCM topic unsubscribe skipped: ${e.message}');
       }
-      await prefs.remove(_topicPrefsKey);
+      _sessionTopic = null;
+      if (user != null) {
+        try {
+          await TenantRefs.bootstrapDoc(user.uid).set({
+            'fcmTopic': FieldValue.delete(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        } catch (e) {
+          debugPrint('[FCM] clearComuneSubscription bootstrap clear error: $e');
+        }
+      }
     }
   }
 }

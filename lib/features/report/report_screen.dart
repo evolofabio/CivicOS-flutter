@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../core/models/citizen_data.dart';
 import '../../core/models/tenant.dart';
-import '../../core/services/mock_data.dart';
+import '../../core/services/comune_config_service.dart';
+import '../../core/services/tenant_refs.dart';
 
 class ReportScreen extends StatefulWidget {
   final bool seniorMode;
@@ -26,35 +30,112 @@ class _ReportScreenState extends State<ReportScreen> {
   bool _posizioneRilevata = false;
   bool _anonima = false;
   final _picker = ImagePicker();
+  List<String> _categorie = ComuneConfigService.defaults['categorieSegnalazione']!;
+  StreamSubscription<Map<String, List<String>>>? _configSub;
+  String? _tenantId;
 
-  Future<String> _resolveUtenteDisplay(User? user, bool anonima) async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final tenant = Provider.of<Tenant>(context, listen: false);
+    if (_tenantId == tenant.id) return;
+    _tenantId = tenant.id;
+    _configSub?.cancel();
+    _configSub = ComuneConfigService.watch(tenant.id).listen((cfg) {
+      if (mounted) setState(() => _categorie = cfg['categorieSegnalazione']!);
+    });
+  }
+
+  @override
+  void dispose() {
+    _configSub?.cancel();
+    _descController.dispose();
+    _posizioneController.dispose();
+    super.dispose();
+  }
+
+  String _buildUtenteDisplay({
+    required String nome,
+    required String cognome,
+    required User? user,
+    required bool anonima,
+  }) {
     if (anonima) return 'Anonimo';
-
+    final full = '$nome $cognome'.trim();
+    if (full.isNotEmpty) return full;
     final direct = (user?.displayName ?? '').trim();
     if (direct.isNotEmpty) return direct;
-
     final email = (user?.email ?? '').trim();
     if (email.isNotEmpty) return email;
+    return 'Utente registrato';
+  }
 
+  Future<(String, String)> _resolveNomeCognome(User? user) async {
     final uid = (user?.uid ?? '').trim();
-    if (uid.isEmpty) return 'Utente non identificato';
+    if (uid.isNotEmpty) {
+      try {
+        final comuneId = Provider.of<Tenant>(context, listen: false).id;
+        final doc = await TenantRefs.utentiDoc(
+          comuneId,
+          uid,
+        ).get().timeout(const Duration(seconds: 2));
+        final data = doc.data();
+        if (data != null) {
+          final nome = (data['nome'] ?? '').toString().trim();
+          final cognome = (data['cognome'] ?? '').toString().trim();
+          if (nome.isNotEmpty || cognome.isNotEmpty) {
+            return (nome, cognome);
+          }
+        }
+      } catch (e) {
+        debugPrint('[ReportScreen] _fetchNomeCognome error: $e');
+      }
+    }
+
+    final citizen = Provider.of<CitizenData>(context, listen: false);
+    final localNome = citizen.nome.trim();
+    final localCognome = citizen.cognome.trim();
+    if (localNome.isNotEmpty || localCognome.isNotEmpty) {
+      return (localNome, localCognome);
+    }
+
+    return ('', '');
+  }
+
+  Future<Map<String, dynamic>> _buildFotoPayload({
+    required String comuneId,
+    required String segnalazioneId,
+  }) async {
+    if (_fotoAllegata == null) return {'foto': false};
 
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('utenti')
-          .doc(uid)
-          .get()
-          .timeout(const Duration(seconds: 2));
-      final data = doc.data();
-      if (data != null) {
-        final nome = (data['nome'] ?? '').toString().trim();
-        final cognome = (data['cognome'] ?? '').toString().trim();
-        final full = '$nome $cognome'.trim();
-        if (full.isNotEmpty) return full;
-      }
-    } catch (_) {}
+      final ref = FirebaseStorage.instance.ref().child(
+        'comuni/$comuneId/segnalazioni/$segnalazioneId.jpg',
+      );
+      await ref.putFile(
+        File(_fotoAllegata!.path),
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+      final url = await ref.getDownloadURL();
+      return {'foto': true, 'fotoUrl': url, 'fotoNome': _fotoAllegata!.name};
+    } catch (e) {
+      debugPrint('[CivicOS] Upload foto fallito, provo fallback inline: $e');
+    }
 
-    return uid;
+    try {
+      final bytes = await _fotoAllegata!.readAsBytes();
+      if (bytes.lengthInBytes <= 700 * 1024) {
+        return {
+          'foto': true,
+          'fotoDataUrl': 'data:image/jpeg;base64,${base64Encode(bytes)}',
+          'fotoNome': _fotoAllegata!.name,
+        };
+      }
+    } catch (e) {
+      debugPrint('[CivicOS] Fallback foto inline fallito: $e');
+    }
+
+    return {'foto': false};
   }
 
   Future<bool> _writeWithGracefulFallback(Future<void> Function() op) async {
@@ -109,14 +190,20 @@ class _ReportScreenState extends State<ReportScreen> {
           '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
       final wasAnonima = _anonima;
       final user = FirebaseAuth.instance.currentUser;
-      final segnalazioniRef = FirebaseFirestore.instance
-          .collection('comuni')
-          .doc(tenant.id)
-          .collection('segnalazioni');
+      final segnalazioniRef = TenantRefs.segnalazioniCol(tenant.id);
       final docRef = segnalazioniRef.doc();
       final segnalazioneId = docRef.id;
-
-      final utenteDisplay = await _resolveUtenteDisplay(user, wasAnonima);
+      final (utenteNome, utenteCognome) = await _resolveNomeCognome(user);
+      final utenteDisplay = _buildUtenteDisplay(
+        nome: utenteNome,
+        cognome: utenteCognome,
+        user: user,
+        anonima: wasAnonima,
+      );
+      final fotoPayload = await _buildFotoPayload(
+        comuneId: tenant.id,
+        segnalazioneId: segnalazioneId,
+      );
 
       double? lat;
       double? lng;
@@ -131,23 +218,26 @@ class _ReportScreenState extends State<ReportScreen> {
 
       final confirmed = await _writeWithGracefulFallback(
         () => docRef.set({
-              'segnalazioneId': segnalazioneId,
-              'categoria': _categoria,
-              'descrizione': _descController.text.trim(),
-              'data': dataStr,
-              'stato': 'Aperta',
-              'posizione': posRaw,
-              'lat': lat,
-              'lng': lng,
-              'anonima': _anonima,
-              'uid': user?.uid ?? '',
-              'email': user?.email ?? '',
-              'utenteDisplay': utenteDisplay,
-              'utenteId': user?.uid ?? '',
-              'utenteEmail': wasAnonima ? '' : (user?.email ?? ''),
-              'comuneId': tenant.id,
-              'timestamp': FieldValue.serverTimestamp(),
-            }),
+          'segnalazioneId': segnalazioneId,
+          'categoria': _categoria,
+          'descrizione': _descController.text.trim(),
+          'data': dataStr,
+          'stato': 'Aperta',
+          'posizione': posRaw,
+          'lat': lat,
+          'lng': lng,
+          'anonima': _anonima,
+          'uid': user?.uid ?? '',
+          'email': user?.email ?? '',
+          'utenteDisplay': utenteDisplay,
+          'utenteNome': wasAnonima ? '' : utenteNome,
+          'utenteCognome': wasAnonima ? '' : utenteCognome,
+          'utenteId': user?.uid ?? '',
+          'utenteEmail': wasAnonima ? '' : (user?.email ?? ''),
+          'comuneId': tenant.id,
+          'timestamp': FieldValue.serverTimestamp(),
+          ...fotoPayload,
+        }),
       );
       if (!mounted) return;
       setState(() {
@@ -165,18 +255,16 @@ class _ReportScreenState extends State<ReportScreen> {
       final syncMsg = wasAnonima
           ? 'Segnalazione anonima ricevuta (ID: $segnalazioneId). Sincronizzazione in corso.'
           : 'Segnalazione ricevuta (ID: $segnalazioneId). Sincronizzazione in corso.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(confirmed ? okMsg : syncMsg)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(confirmed ? okMsg : syncMsg)));
     } catch (e) {
       if (!mounted) return;
       setState(() => _sending = false);
       final msg = e is TimeoutException
           ? 'Connessione lenta: invio non confermato. Riprova tra pochi secondi.'
           : 'Errore durante l\'invio. Verifica la connessione e riprova.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 
@@ -193,7 +281,9 @@ class _ReportScreenState extends State<ReportScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore fotocamera: verifica i permessi dell\'app')),
+          SnackBar(
+            content: Text('Errore fotocamera: verifica i permessi dell\'app'),
+          ),
         );
       }
     }
@@ -425,7 +515,7 @@ class _ReportScreenState extends State<ReportScreen> {
                         prefixIcon: Icon(Icons.category),
                       ),
                       isExpanded: true,
-                      items: MockData.categorieSegnalazione
+                      items: _categorie
                           .map(
                             (c) => DropdownMenuItem(value: c, child: Text(c)),
                           )
@@ -484,7 +574,8 @@ class _ReportScreenState extends State<ReportScreen> {
                       controller: _posizioneController,
                       readOnly: true,
                       decoration: InputDecoration(
-                        hintText: 'Posizione GPS reale (rilevata automaticamente)',
+                        hintText:
+                            'Posizione GPS reale (rilevata automaticamente)',
                         prefixIcon: Icon(
                           Icons.location_on,
                           color: _posizioneRilevata ? Colors.green : null,
@@ -558,7 +649,11 @@ class _ReportScreenState extends State<ReportScreen> {
                                   color: Colors.red,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.close, color: Colors.white, size: 16),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
                             ),
                           ),

@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/models/tenant.dart';
-import '../../core/services/mock_data.dart';
+import '../../core/services/comuni_catalog.dart';
+import '../../core/services/tenant_refs.dart';
 
 class ComunicazioniScreen extends StatefulWidget {
   const ComunicazioniScreen({Key? key}) : super(key: key);
@@ -144,7 +145,7 @@ class _ComunicazioniScreenState extends State<ComunicazioniScreen> {
 
   List<String> _zonePerComune(String comuneNome, List<String> daFirestore) {
     if (daFirestore.isNotEmpty) return daFirestore;
-    return MockData.comuni[comuneNome] ?? [];
+    return ComuniCatalog.frazioniStatiche(comuneNome);
   }
 
   DateTime _asDateTime(dynamic value) {
@@ -215,7 +216,9 @@ class _ComunicazioniScreenState extends State<ComunicazioniScreen> {
                   TextButton.icon(
                     onPressed: () => _openUrl(mediaUrl),
                     icon: Icon(
-                      _isVideoLike(mediaUrl) ? Icons.play_arrow : Icons.open_in_new,
+                      _isVideoLike(mediaUrl)
+                          ? Icons.play_arrow
+                          : Icons.open_in_new,
                     ),
                     label: Text(
                       _isVideoLike(mediaUrl)
@@ -376,11 +379,7 @@ class _ComunicazioniScreenState extends State<ComunicazioniScreen> {
         );
 
         return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('comuni')
-              .doc(tenant.id)
-              .collection('comunicazioni')
-              .snapshots(),
+          stream: TenantRefs.comunicazioniCol(tenant.id).snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -412,11 +411,11 @@ class _ComunicazioniScreenState extends State<ComunicazioniScreen> {
                     final allegati = _extractAllegati(d['allegati']);
                     final mediaUrl = _str(d['mediaUrl']);
                     final previewMedia = mediaUrl.isNotEmpty
-                      ? mediaUrl
-                      : _firstImageDataUrl(allegati);
+                        ? mediaUrl
+                        : _firstImageDataUrl(allegati);
                     final isNews =
-                      _str(d['canale']).toLowerCase() == 'news' ||
-                      previewMedia.isNotEmpty;
+                        _str(d['canale']).toLowerCase() == 'news' ||
+                        previewMedia.isNotEmpty;
                     final sortDate = _extractSortDate(d);
                     return <String, dynamic>{
                       'id': doc.id,
@@ -612,12 +611,12 @@ class _ComunicazioniScreenState extends State<ComunicazioniScreen> {
                                   final letto = c['letto'] as bool;
                                   final tipo = c['tipo'] as String;
                                   final color = _tipoColor(tipo);
-                                    final allegati =
+                                  final allegati =
                                       c['allegati']
-                                        as List<Map<String, dynamic>>? ??
+                                          as List<Map<String, dynamic>>? ??
                                       <Map<String, dynamic>>[];
-                                    final mediaUrl = _str(c['previewMedia']);
-                                    final isNews = c['isNews'] == true;
+                                  final mediaUrl = _str(c['previewMedia']);
+                                  final isNews = c['isNews'] == true;
 
                                   return Card(
                                     margin: const EdgeInsets.only(bottom: 10),

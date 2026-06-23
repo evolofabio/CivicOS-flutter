@@ -1568,8 +1568,16 @@ body {
         <div class="cfg-form-grid">
           <div class="cfg-form-group">
             <label>URL Logo / Stemma comunale</label>
-            <input type="url" id="cfgLogoUrl" placeholder="https://...stemma.png">
+            <input type="url" id="cfgLogoUrl" placeholder="https://...stemma.png" oninput="refreshCfgLogoPreview()">
             <span class="hint">URL immagine PNG/SVG dello stemma</span>
+            <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="file" id="cfgLogoFile" accept="image/*" style="display:none" onchange="handleCfgLogoFile(this.files)">
+              <button type="button" class="btn-reset-config" style="padding:8px 12px;" onclick="document.getElementById('cfgLogoFile').click()">📤 Carica logo</button>
+              <button type="button" class="btn-reset-config" style="padding:8px 12px;" onclick="clearCfgLogo()">🧹 Rimuovi logo</button>
+            </div>
+            <div style="margin-top:10px;">
+              <img id="cfgLogoPreview" alt="Anteprima logo" style="display:none;max-width:92px;max-height:92px;border-radius:10px;border:1px solid #dfe9f5;background:#fff;object-fit:contain;padding:6px;">
+            </div>
           </div>
           <div class="cfg-form-group">
             <label>Motto / Slogan</label>
@@ -1761,6 +1769,54 @@ function escapeH(t) {
   return d.innerHTML;
 }
 
+function refreshCfgLogoPreview() {
+  var input = document.getElementById('cfgLogoUrl');
+  var preview = document.getElementById('cfgLogoPreview');
+  if (!input || !preview) return;
+  var value = (input.value || '').trim();
+  if (!value) {
+    preview.style.display = 'none';
+    preview.removeAttribute('src');
+    return;
+  }
+  preview.src = value;
+  preview.style.display = '';
+}
+
+function handleCfgLogoFile(files) {
+  if (!files || !files.length) return;
+  var file = files[0];
+  if (!file.type || file.type.indexOf('image/') !== 0) {
+    showToast('⚠️ Seleziona un file immagine valido');
+    return;
+  }
+  if (file.size > 800000) {
+    showToast('⚠️ Logo troppo grande (max 800 KB)');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function() {
+    var dataUrl = (reader.result || '').toString();
+    var input = document.getElementById('cfgLogoUrl');
+    if (!input) return;
+    input.value = dataUrl;
+    refreshCfgLogoPreview();
+    showToast('🖼️ Logo caricato');
+  };
+  reader.onerror = function() {
+    showToast('⚠️ Errore nella lettura del logo');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearCfgLogo() {
+  var input = document.getElementById('cfgLogoUrl');
+  var fileInput = document.getElementById('cfgLogoFile');
+  if (input) input.value = '';
+  if (fileInput) fileInput.value = '';
+  refreshCfgLogoPreview();
+}
+
 function comuneDocIdFromName(name) {
   if (!name || typeof name !== 'string') return null;
   return name.toLowerCase()
@@ -1868,34 +1924,30 @@ var SERVIZI = [
   { id: 'servizi_convenzionati', nome: 'Servizi Convenzionati', icona: '🏥', colore: '#AD1457', desc: 'Assistenza domiciliare, visite private' },
 ];
 
-// ── Storage keys ──
-var STORAGE_KEY = 'civicos_admin_services';
-
-// ── Load / Save ──
+// ── Config in memoria (persistenza su Firestore) ──
 function loadConfig() {
-  var raw = localStorage.getItem(STORAGE_KEY);
-  if (raw) return JSON.parse(raw);
-  var config = {};
+  var cfg = {};
   COMUNI.forEach(function(c) {
-    config[c] = {};
-    SERVIZI.forEach(function(s) { config[c][s.id] = false; });
+    cfg[c] = {};
+    SERVIZI.forEach(function(s) { cfg[c][s.id] = false; });
   });
-  return config;
+  return cfg;
 }
 
 function saveConfig(cfg) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+  config = cfg;
 }
 
 var config = loadConfig();
 var cloudRegisteredComuni = {};
+var comuneUsersCache = {};
+var auditLogCache = [];
 var cloudSyncErrors = {};
-var cloudSourceMode = 'local';
+var cloudSourceMode = 'cloud';
 var lastCloudSyncAt = null;
 var cfgCurrentTabId = 'sindaco';
 
 var ADMIN_ROLE_KEY = 'civicos_admin_role';
-var ADMIN_AUDIT_KEY = 'civicos_admin_audit_log';
 
 var SERVICE_PRESETS = {
   small: ['segnalazioni', 'comunicazioni', 'calendario', 'prenotazioni'],
@@ -1914,13 +1966,13 @@ function formatDateTime(dt) {
 }
 
 function getAdminRole() {
-  return localStorage.getItem(ADMIN_ROLE_KEY) || 'super-admin';
+  return sessionStorage.getItem(ADMIN_ROLE_KEY) || 'super-admin';
 }
 
 function onAdminRoleChange() {
   var roleEl = document.getElementById('adminRole');
   if (!roleEl) return;
-  localStorage.setItem(ADMIN_ROLE_KEY, roleEl.value);
+  sessionStorage.setItem(ADMIN_ROLE_KEY, roleEl.value);
   applyRolePermissions();
   addAudit('role-change', null, { role: roleEl.value });
   showToast('🔐 Ruolo impostato: ' + roleEl.value);
@@ -1949,24 +2001,35 @@ function applyRolePermissions() {
 }
 
 function getAuditLog() {
+  return auditLogCache.slice();
+}
+
+async function preloadAuditLog() {
+  if (!window._db) return;
   try {
-    return JSON.parse(localStorage.getItem(ADMIN_AUDIT_KEY) || '[]');
+    var snap = await window._db.collection('platform').doc('audit')
+      .collection('entries').orderBy('at', 'desc').limit(200).get();
+    auditLogCache = snap.docs.map(function(d) { return d.data(); });
+    renderDiagnosticLog();
   } catch (e) {
-    return [];
+    console.warn('Audit preload failed', e);
   }
 }
 
 function addAudit(action, comune, details) {
-  var logs = getAuditLog();
-  logs.unshift({
+  var entry = {
     at: new Date().toISOString(),
     action: action,
     comune: comune || '',
     details: details || {}
-  });
-  if (logs.length > 200) logs = logs.slice(0, 200);
-  localStorage.setItem(ADMIN_AUDIT_KEY, JSON.stringify(logs));
+  };
+  auditLogCache.unshift(entry);
+  if (auditLogCache.length > 200) auditLogCache = auditLogCache.slice(0, 200);
   renderDiagnosticLog();
+  if (!window._db) return;
+  window._db.collection('platform').doc('audit').collection('entries').add(entry).catch(function(e) {
+    console.warn('Audit write failed', e);
+  });
 }
 
 function renderDiagnosticLog() {
@@ -1996,7 +2059,6 @@ function clearCloudSyncError(key) {
 }
 
 function updateHealthPanel() {
-  var localCount = Object.keys(getLocalRegisteredComuni()).length;
   var cloudCount = Object.keys(cloudRegisteredComuni).length;
   var errorsCount = Object.keys(cloudSyncErrors).length;
 
@@ -2007,13 +2069,13 @@ function updateHealthPanel() {
   var dLocal = document.getElementById('diagLocalCount');
 
   if (originBadge) {
-    originBadge.className = 'health-badge ' + (errorsCount ? 'err' : (cloudSourceMode === 'cloud' ? 'ok' : 'warn'));
-    originBadge.textContent = errorsCount ? 'Sync in errore' : (cloudSourceMode === 'cloud' ? 'Cloud OK' : 'Solo locale');
+    originBadge.className = 'health-badge ' + (errorsCount ? 'err' : 'ok');
+    originBadge.textContent = errorsCount ? 'Sync in errore' : 'Cloud OK';
   }
   if (lastSyncEl) lastSyncEl.textContent = formatDateTime(lastCloudSyncAt);
   if (errEl) errEl.textContent = String(errorsCount);
   if (dCloud) dCloud.textContent = String(cloudCount);
-  if (dLocal) dLocal.textContent = String(localCount);
+  if (dLocal) dLocal.textContent = '0';
 
   updateAdminAlerts();
 }
@@ -2095,7 +2157,7 @@ async function preloadCloudComuni() {
       if (!comuneName) return;
 
       var data = doc.data() || {};
-      fromCloud[comuneName] = data;
+      fromCloud[comuneName] = normalizeRegistrationFromFirestore(data);
 
       // Hydrate service toggles from cloud if available.
       var cloudServices = data.servizi || data.services || data.serviziAttivi || null;
@@ -2112,10 +2174,10 @@ async function preloadCloudComuni() {
     });
 
     cloudRegisteredComuni = fromCloud;
-    cloudSourceMode = Object.keys(fromCloud).length ? 'cloud' : 'local';
+    cloudSourceMode = 'cloud';
     lastCloudSyncAt = new Date().toISOString();
     clearCloudSyncError('preload');
-    saveConfig(config);
+    await preloadOperatorCounts();
     renderComuni();
     updateHealthPanel();
   } catch (err) {
@@ -2153,34 +2215,55 @@ async function discoverComuniFromSubcollections() {
   return Array.from(candidates);
 }
 
-// ── Get comune registration info from localStorage ──
+function normalizeRegistrationFromFirestore(data) {
+  if (!data || typeof data !== 'object') return null;
+  var info = data.info || {};
+  return Object.assign({}, data, {
+    info: info,
+    indirizzo: info.indirizzo || data.indirizzo || '',
+    telComune: info.telefono || data.telComune || '',
+    pec: info.pec || data.pec || '',
+    frazioni: data.frazioni || [],
+    contrade: data.contrade || []
+  });
+}
+
+// ── Dati comune da Firestore ──
 function getComuneRegistration(comune) {
-  var raw = localStorage.getItem('civicos_comuni_config');
-  if (!raw) return null;
-  var all = JSON.parse(raw);
-  return all[comune] || null;
+  return cloudRegisteredComuni[comune] || null;
 }
 
 function getComuneUsers(comune) {
-  var raw = localStorage.getItem('civicos_utenti_' + comune);
-  if (!raw) return [];
-  return JSON.parse(raw);
+  return comuneUsersCache[comune] || [];
 }
 
 function getAllRegisteredComuni() {
-  var local = getLocalRegisteredComuni();
-  var merged = Object.assign({}, cloudRegisteredComuni, local);
-  return merged;
+  return cloudRegisteredComuni;
 }
 
-function getLocalRegisteredComuni() {
-  var raw = localStorage.getItem('civicos_comuni_config');
-  if (!raw) return {};
-  try {
-    return JSON.parse(raw) || {};
-  } catch (e) {
-    return {};
-  }
+async function preloadOperatorCounts() {
+  if (!window._db) return;
+  await Promise.all(COMUNI.map(async function(comuneName) {
+    var comuneId = comuneDocIdFromName(comuneName);
+    if (!comuneId) return;
+    try {
+      var snap = await window._db.collection('comuni').doc(comuneId)
+        .collection('operatori').get();
+      comuneUsersCache[comuneName] = snap.docs.map(function(d) {
+        var data = d.data() || {};
+        return {
+          id: d.id,
+          nome: data.nome || '',
+          cognome: data.cognome || '',
+          email: data.email || '',
+          ruolo: data.ruolo || 'operatore',
+          stato: data.abilitato !== false ? 'attivo' : 'disattivato'
+        };
+      });
+    } catch (e) {
+      comuneUsersCache[comuneName] = [];
+    }
+  }));
 }
 
 function getTotalUsers() {
@@ -2753,6 +2836,7 @@ function loadCfgData(comune, reg) {
   document.getElementById('previewPrimario').style.background = document.getElementById('cfgColorePrimario').value;
   document.getElementById('previewSecondario').style.background = document.getElementById('cfgColoreSecondario').value;
   document.getElementById('cfgLogoUrl').value = (reg && reg.portale) ? (reg.portale.logoUrl || '') : '';
+  refreshCfgLogoPreview();
   document.getElementById('cfgMotto').value = (reg && reg.portale) ? (reg.portale.motto || '') : '';
   document.getElementById('cfgNotifiche').value = (reg && reg.portale && reg.portale.notifiche) ? reg.portale.notifiche : 'attive';
   document.getElementById('cfgLingua').value = (reg && reg.portale && reg.portale.lingua) ? reg.portale.lingua : 'it';
@@ -3209,13 +3293,15 @@ async function saveCfgComune() {
   }
 
   if (logoUrl) {
-    try {
-      var parsedUrl = new URL(logoUrl);
-      if (!/^https?:$/.test(parsedUrl.protocol)) throw new Error('invalid protocol');
-    } catch (e) {
-      showToast('⚠️ URL logo non valido');
-      switchConfigTab('portale', document.querySelector('[onclick*="switchConfigTab(\'portale\'"]'));
-      return;
+    if (!logoUrl.startsWith('data:image/')) {
+      try {
+        var parsedUrl = new URL(logoUrl);
+        if (!/^https?:$/.test(parsedUrl.protocol)) throw new Error('invalid protocol');
+      } catch (e) {
+        showToast('⚠️ URL logo non valido');
+        switchConfigTab('portale', document.querySelector('[onclick*="switchConfigTab(\'portale\'"]'));
+        return;
+      }
     }
   }
 
@@ -3252,7 +3338,7 @@ async function saveCfgComune() {
 
   setSaveButtonLoading(true);
 
-  var allReg = getLocalRegisteredComuni();
+  var allReg = getAllRegisteredComuni();
   var existingPw = (allReg[cfgSelectedComune] && allReg[cfgSelectedComune].sindaco) ? allReg[cfgSelectedComune].sindaco.password : null;
   var newPw = document.getElementById('cfgSindacoPassword').value;
 
@@ -3323,9 +3409,8 @@ async function saveCfgComune() {
     ultimaModifica: new Date().toISOString().slice(0, 10)
   };
 
-  allReg[cfgSelectedComune] = cfgData;
-  localStorage.setItem('civicos_comuni_config', JSON.stringify(allReg));
-  pushCfgSnapshot(cfgSelectedComune, cfgData);
+  cloudRegisteredComuni[cfgSelectedComune] = normalizeRegistrationFromFirestore(cfgData);
+  await pushCfgSnapshot(cfgSelectedComune, cfgData);
 
   // Sync cloud config per comunicazioni e app/portale comune
   try {
@@ -3334,30 +3419,8 @@ async function saveCfgComune() {
   } catch (err) {
     setCloudSyncError(cfgSelectedComune + ':config', err);
     console.error('Sync Firestore config failed:', err);
-    showToast('⚠️ Config salvata in locale, sync cloud non riuscita');
+    showToast('⚠️ Sync cloud non riuscita');
   }
-
-  // Also create sindaco in utenti storage
-  var utentiKey = 'civicos_utenti_' + cfgSelectedComune;
-  var utenti = getComuneUsers(cfgSelectedComune);
-  var sindacoIdx = utenti.findIndex(function(u) { return u.ruolo === 'sindaco'; });
-  var sindacoUser = {
-    id: sindacoIdx >= 0 ? utenti[sindacoIdx].id : 1,
-    nome: nome,
-    cognome: cognome,
-    email: email,
-    ruolo: 'sindaco',
-    comune: cfgSelectedComune,
-    telefono: cfgData.sindaco.telefono,
-    stato: 'attivo',
-    creato: cfgData.sindaco.creato
-  };
-  if (sindacoIdx >= 0) {
-    utenti[sindacoIdx] = sindacoUser;
-  } else {
-    utenti.push(sindacoUser);
-  }
-  localStorage.setItem(utentiKey, JSON.stringify(utenti));
 
   showToast('💾 Configurazione di ' + cfgSelectedComune + ' salvata!');
   addAudit('save-config', cfgSelectedComune, { completezza: getConfigCompleteness(cfgSelectedComune).score });
@@ -3371,31 +3434,31 @@ async function saveCfgComune() {
   setSaveButtonLoading(false);
 }
 
-function getCfgHistoryKey(comune) {
-  return 'civicos_cfg_history_' + comune;
-}
-
-function pushCfgSnapshot(comune, cfgData) {
-  if (!comune) return;
-  var key = getCfgHistoryKey(comune);
-  var snapshots = [];
+async function pushCfgSnapshot(comune, cfgData) {
+  if (!comune || !window._db) return;
+  var comuneId = comuneDocIdFromName(comune);
+  if (!comuneId) return;
   try {
-    snapshots = JSON.parse(localStorage.getItem(key) || '[]');
+    await window._db.collection('comuni').doc(comuneId).collection('configHistory').add({
+      at: new Date().toISOString(),
+      data: cfgData
+    });
   } catch (e) {
-    snapshots = [];
+    console.warn('Config snapshot failed', e);
   }
-  snapshots.unshift({ at: new Date().toISOString(), data: cfgData });
-  if (snapshots.length > 12) snapshots = snapshots.slice(0, 12);
-  localStorage.setItem(key, JSON.stringify(snapshots));
 }
 
-function renderCfgHistory() {
+async function renderCfgHistory() {
   var el = document.getElementById('cfgHistoryList');
-  if (!el || !cfgSelectedComune) return;
-  var key = getCfgHistoryKey(cfgSelectedComune);
+  if (!el || !cfgSelectedComune || !window._db) return;
+  var comuneId = comuneDocIdFromName(cfgSelectedComune);
+  if (!comuneId) return;
+
   var snapshots = [];
   try {
-    snapshots = JSON.parse(localStorage.getItem(key) || '[]');
+    var snap = await window._db.collection('comuni').doc(comuneId)
+      .collection('configHistory').orderBy('at', 'desc').limit(12).get();
+    snapshots = snap.docs.map(function(d) { return d.data(); });
   } catch (e) {
     snapshots = [];
   }
@@ -3411,23 +3474,18 @@ function renderCfgHistory() {
       + '<button class="btn-all-on" style="padding:4px 8px;border:none;border-radius:8px;cursor:pointer;" onclick="restoreCfgVersion(' + i + ')">Ripristina</button>'
       + '</div>';
   }).join('');
+  window._cfgHistorySnapshots = snapshots;
 }
 
-function restoreCfgVersion(idx) {
-  if (!cfgSelectedComune) return;
-  var key = getCfgHistoryKey(cfgSelectedComune);
-  var snapshots = [];
-  try {
-    snapshots = JSON.parse(localStorage.getItem(key) || '[]');
-  } catch (e) {}
-  if (!snapshots[idx]) return;
+async function restoreCfgVersion(idx) {
+  if (!cfgSelectedComune || !window._cfgHistorySnapshots) return;
+  var snapshot = window._cfgHistorySnapshots[idx];
+  if (!snapshot || !snapshot.data) return;
 
-  var allReg = getLocalRegisteredComuni();
-  allReg[cfgSelectedComune] = snapshots[idx].data;
-  localStorage.setItem('civicos_comuni_config', JSON.stringify(allReg));
-  loadCfgData(cfgSelectedComune, allReg[cfgSelectedComune]);
+  cloudRegisteredComuni[cfgSelectedComune] = normalizeRegistrationFromFirestore(snapshot.data);
+  loadCfgData(cfgSelectedComune, snapshot.data);
   addAudit('restore-config-version', cfgSelectedComune, { index: idx });
-  showToast('⏪ Versione ripristinata');
+  showToast('⏪ Versione ripristinata (salva per applicare su cloud)');
   renderComuni();
   renderCfgHistory();
 }
@@ -3460,13 +3518,11 @@ function importCfgComune() {
   if (!raw) return;
   try {
     var parsed = JSON.parse(raw);
-    var allReg = getLocalRegisteredComuni();
-    allReg[cfgSelectedComune] = parsed;
-    localStorage.setItem('civicos_comuni_config', JSON.stringify(allReg));
+    cloudRegisteredComuni[cfgSelectedComune] = normalizeRegistrationFromFirestore(parsed);
     loadCfgData(cfgSelectedComune, parsed);
     pushCfgSnapshot(cfgSelectedComune, parsed);
     addAudit('import-config', cfgSelectedComune, {});
-    showToast('📥 Configurazione importata');
+    showToast('📥 Configurazione importata (salva per sincronizzare)');
     renderComuni();
     renderCfgHistory();
   } catch (e) {
@@ -3481,14 +3537,26 @@ function resetCfgForm() {
   showToast('🔄 Form ripristinato');
 }
 
-function deleteCfgComune() {
+async function deleteCfgComune() {
   if (!cfgSelectedComune) return;
   if (!confirm('Sei sicuro di voler eliminare la configurazione di ' + cfgSelectedComune + '?\nQuesta azione non è reversibile.')) return;
 
-  var allReg = getLocalRegisteredComuni();
-  delete allReg[cfgSelectedComune];
-  localStorage.setItem('civicos_comuni_config', JSON.stringify(allReg));
-  localStorage.removeItem('civicos_utenti_' + cfgSelectedComune);
+  var comuneId = comuneDocIdFromName(cfgSelectedComune);
+  if (window._db && comuneId) {
+    try {
+      await window._db.collection('comuni').doc(comuneId).update({
+        sindaco: firebase.firestore.FieldValue.delete(),
+        frazioni: [],
+        info: firebase.firestore.FieldValue.delete(),
+        deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) {
+      console.error('Delete config cloud failed', e);
+    }
+  }
+
+  delete cloudRegisteredComuni[cfgSelectedComune];
+  delete comuneUsersCache[cfgSelectedComune];
 
   showToast('🗑️ Configurazione di ' + cfgSelectedComune + ' eliminata');
   addAudit('delete-config', cfgSelectedComune, {});
@@ -3496,6 +3564,7 @@ function deleteCfgComune() {
   onComuneSelected();
   populateCfgComuneSelect();
   updateStats();
+  renderComuni();
 }
 
 // ── Init ──
@@ -3507,6 +3576,7 @@ applyRolePermissions();
 applyLiveFieldValidation();
 renderComuni();
 preloadCloudComuni();
+preloadAuditLog();
 renderDiagnosticLog();
 updateCfgProgress();
 updateConfigTabIndicators();

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Login Operatore</title>
+<link rel="stylesheet" href="auth.css">
+<style>
+.comune-badge {
+  background: linear-gradient(135deg, #1E4E8C, #0A58CA);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.comune-badge small {
+  display: block;
+  font-size: 11px;
+  opacity: 0.8;
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+.change-comune {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: #0A58CA;
+  text-decoration: none;
+  margin-top: 12px;
+}
+.change-comune:hover { text-decoration: underline; }
+.login-error {
+  background: #fde8e8;
+  color: #E53935;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+</style>
+</head>
+<body class="auth-body">
+
+<div class="auth-container">
+
+  <img src="CivicOS-Remove.png" alt="CivicOS Logo" class="auth-logo">
+  <div class="auth-subtitle">Civic Operating System</div>
+  <div class="auth-description">Il sistema che unisce comune e cittadini</div>
+
+  <div class="auth-card">
+    <div class="comune-badge">
+      <small>Portale del comune di</small>
+      <span id="comuneLabel"></span>
+    </div>
+
+    <h2>Accesso Operatore</h2>
+
+    <div class="login-error" id="loginError"></div>
+
+    <form id="loginForm" onsubmit="return handleLogin(event)">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="operatore@comune.it" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="••••••••" required minlength="6">
+          <button type="button" class="password-toggle" onclick="togglePassword()">👁</button>
+        </div>
+      </div>
+
+      <a href="#" class="forgot-link">Password dimenticata?</a>
+
+      <button type="submit" class="btn-primary" id="loginBtn">Accedi</button>
+    </form>
+
+    <a href="portale.html" class="change-comune">← Cambia comune</a>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script>
+const comuneSel = sessionStorage.getItem('civicos_comune_sel');
+if (!comuneSel) window.location.href = 'portale.html';
+
+document.getElementById('comuneLabel').textContent = comuneSel;
+document.title = 'CivicOS – Login ' + comuneSel;
+
+(async function init() {
+  const configured = await civicosIsComuneConfigured(comuneSel);
+  if (!configured) {
+    sessionStorage.setItem('civicos_comune_sel', comuneSel);
+    window.location.href = 'setup.html';
+  }
+})();
+
+function togglePassword() {
+  const pw = document.getElementById('password');
+  const btn = pw.nextElementSibling;
+  if (pw.type === 'password') {
+    pw.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    pw.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errorEl = document.getElementById('loginError');
+
+  if (!email || !password) return false;
+
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>';
+
+  try {
+    await civicosSignInOperatore(email, password, comuneSel);
+    window.location.href = 'index.html';
+  } catch (err) {
+    errorEl.textContent = err.code ? civicosAuthErrorMessage(err.code) : (err.message || 'Errore di accesso');
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Accedi';
+  }
+
+  return false;
+}
+</script>
+
+</body>
+</html>

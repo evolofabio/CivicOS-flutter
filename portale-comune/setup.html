@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Configurazione Comune</title>
+<link rel="stylesheet" href="auth.css">
+<style>
+.auth-container { max-width: 520px; }
+.comune-header {
+  background: linear-gradient(135deg, #1E4E8C, #0A58CA);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.comune-header h3 { font-size: 18px; margin: 0; }
+.comune-header small { opacity: 0.8; font-size: 12px; }
+
+/* Steps indicator */
+.steps {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  position: relative;
+}
+.step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e0e6ed;
+  color: #888;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  transition: all 0.3s;
+}
+.step.active .step-circle {
+  background: #0A58CA;
+  color: #fff;
+}
+.step.done .step-circle {
+  background: #2E7D32;
+  color: #fff;
+}
+.step-label {
+  font-size: 11px;
+  color: #888;
+  font-weight: 500;
+}
+.step.active .step-label { color: #0A58CA; font-weight: 600; }
+.step.done .step-label { color: #2E7D32; }
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: #e0e6ed;
+  z-index: 0;
+}
+
+/* Step content areas */
+.step-content { display: none; }
+.step-content.active { display: block; }
+
+/* Frazioni chips */
+.frazioni-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.frazione-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #e3f2fd;
+  color: #1E4E8C;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.frazione-chip .remove {
+  cursor: pointer;
+  color: #E53935;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.add-frazione-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.add-frazione-row input {
+  flex: 1;
+}
+.add-frazione-row button {
+  padding: 10px 16px;
+  background: #1E4E8C;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.success-box {
+  text-align: center;
+  padding: 20px 0;
+}
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+.success-box h3 {
+  font-size: 20px;
+  color: #2E7D32;
+  margin-bottom: 8px;
+}
+.success-box p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+.nav-buttons .btn {
+  padding: 11px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+.btn-back {
+  background: #f0f0f0;
+  color: #555;
+}
+.btn-back:hover { background: #e0e0e0; }
+.btn-next {
+  background: #0A58CA;
+  color: #fff;
+  margin-left: auto;
+}
+.btn-next:hover { background: #084db5; }
+.btn-success {
+  background: #2E7D32;
+  color: #fff;
+}
+.btn-success:hover { background: #1b5e20; }
+</style>
+</head>
+<body class="auth-body">
+
+<div class="auth-container">
+
+  <img src="CivicOS-Remove.png" alt="CivicOS Logo" class="auth-logo">
+  <div class="auth-subtitle">Civic Operating System</div>
+
+  <div class="auth-card">
+
+    <div class="comune-header">
+      <small>Configurazione portale</small>
+      <h3 id="comuneNome"></h3>
+    </div>
+
+    <!-- Steps indicator -->
+    <div class="steps">
+      <div class="step active" id="stepInd1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Sindaco</div>
+      </div>
+      <div class="step" id="stepInd2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Configurazione</div>
+      </div>
+      <div class="step" id="stepInd3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Completo</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Registra Sindaco -->
+    <div class="step-content active" id="step1">
+      <h2 style="font-size:18px;margin-bottom:4px;">Registra il Sindaco</h2>
+      <p style="font-size:13px;color:#666;margin-bottom:20px;">
+        Il primo passo per attivare il portale è registrare il Sindaco del comune.
+      </p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="sNome">Nome</label>
+          <input type="text" id="sNome" placeholder="Mario" required>
+        </div>
+        <div class="form-group">
+          <label for="sCognome">Cognome</label>
+          <input type="text" id="sCognome" placeholder="Rossi" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="sEmail">Email istituzionale</label>
+        <input type="email" id="sEmail" placeholder="sindaco@comune.esempio.it" required>
+      </div>
+
+      <div class="form-group">
+        <label for="sTelefono">Telefono</label>
+        <input type="tel" id="sTelefono" placeholder="+39 333 1234567">
+      </div>
+
+      <div class="form-group">
+        <label for="sPassword">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="sPassword" placeholder="Minimo 6 caratteri" required minlength="6">
+          <button type="button" class="password-toggle" onclick="togglePw('sPassword')">👁</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="window.location.href='portale.html'">← Indietro</button>
+        <button class="btn btn-next" onclick="goStep2()">Avanti →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Configura Comune -->
+    <div class="step-content" id="step2">
+      <h2 style="font-size:18px;margin-bottom:4px;">Configura il Comune</h2>
+      <p style="font-size:13px;color:#666;margin-bottom:20px;">
+        Imposta le informazioni base del comune per il portale.
+      </p>
+
+      <div class="form-group">
+        <label for="cIndirizzo">Indirizzo sede municipale</label>
+        <input type="text" id="cIndirizzo" placeholder="Piazza Municipio, 1">
+      </div>
+
+      <div class="form-group">
+        <label for="cTelComune">Telefono Comune</label>
+        <input type="tel" id="cTelComune" placeholder="+39 0963 123456">
+      </div>
+
+      <div class="form-group">
+        <label for="cPec">PEC</label>
+        <input type="email" id="cPec" placeholder="protocollo@pec.comune.esempio.it">
+      </div>
+
+      <div class="form-group">
+        <label>Frazioni del comune</label>
+        <div class="frazioni-list" id="frazioniList"></div>
+        <div class="add-frazione-row">
+          <input type="text" id="nuovaFrazione" placeholder="Nome frazione">
+          <button onclick="addFrazione()">+ Aggiungi</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="backToStep1()">← Indietro</button>
+        <button class="btn btn-next btn-success" onclick="completeSetup()">Completa configurazione ✓</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Completato -->
+    <div class="step-content" id="step3">
+      <div class="success-box">
+        <div class="success-icon">🏛️</div>
+        <h3>Portale configurato!</h3>
+        <p id="successMsg">Il portale del comune è pronto. Ora puoi accedere con le credenziali del Sindaco.</p>
+        <button class="btn-primary" onclick="goToLogin()" style="max-width:280px;margin:0 auto;">
+          Accedi al portale →
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="auth-footer">
+    <a href="portale.html">← Torna alla scelta del comune</a>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script>
+/* ── Frazioni note per comune ── */
+const frazioniNote = {
+  'Acquaro': ['Ariola', 'Piani', 'Piani di Acquaro', 'Serrata'],
+  'Arena': ['Bivieri', 'Croce', 'Malgari', 'Piani di Arena', 'Santa Maria', 'Santicelli'],
+  'Briatico': ['Mandaradoni', 'Paradisoni', 'Potenzoni', 'San Costantino'],
+  'Capistrano': ['San Nicola'],
+  'Cessaniti': ['Pannaconi', 'San Cono', 'Favelloni', 'Mantineo', 'Piana Pugliese', 'San Michele', "Sant'Andrea", 'Vena'],
+  'Dasà': ["Sant'Antonio"],
+  'Dinami': ['Monsoreto', 'Melicuccà', 'San Giovanni'],
+  'Drapia': ['Brattirò', 'Caria', 'Gasponi'],
+  'Fabrizia': ['Cassari', 'Ciano'],
+  'Filadelfia': ['Montesoro', 'Piano delle Querce', 'San Giovanni', 'San Teodoro', 'Fossa', 'Caria', 'Lenza'],
+  'Filandari': ['Arzona', 'Mesiano', 'Scaliti', 'Vena di Maida'],
+  'Francavilla Angitola': ['Motta Filocastro', 'Calvario'],
+  'Gerocarne': ['Ariola', 'Ciano', "Sant'Angelo"],
+  'Ionadi': ['Nao', 'Vena di Ionadi'],
+  'Joppolo': ['Coccorino', 'Coccorinello', 'Caroniti'],
+  'Limbadi': ['Badia', 'Motta Filocastro', 'San Nicola De Legistis'],
+  'Mileto': ['Calabrò', 'Comparni', 'Paravati'],
+  'Nardodipace': ['Cassari', 'Ragonà', 'San Todaro', 'Vecchio Abitato'],
+  'Nicotera': ['Badia', 'Comerconi', 'Marina di Nicotera', 'Preitoni', 'San Nicola', 'Monte Poro'],
+  'Parghelia': ['Fitili', 'Michelizia'],
+  'Pizzo': ['Marinella', 'Prangi'],
+  'Pizzoni': ['Vascellero', 'San Nicola'],
+  'Polia': ['Trecroci', 'Menniti', 'Poliolo'],
+  'Ricadi': ['Brivadi', 'Lampazzone', 'Orsigliadi', 'San Nicolò', 'Santa Domenica', 'Santa Maria'],
+  'Rombiolo': ['Pernocari', 'Presinaci', 'Moladi', 'Mesiano'],
+  'San Calogero': ['Calimera'],
+  'San Costantino Calabro': ['San Costantino Scalo'],
+  "San Gregorio d'Ippona": ['Zammarò'],
+  'San Nicola da Crissa': ['Piscopio', 'Trivio'],
+  "Sant'Onofrio": ['Papanice'],
+  'Serra San Bruno': ['Ellera', 'Ninfo', 'Spinetto'],
+  'Simbario': ['Piani di Simbario'],
+  'Soriano Calabro': ['San Domenico'],
+  'Spilinga': ['Carciadi', 'Panaja'],
+  'Stefanaconi': ["Sant'Angelo"],
+  'Vibo Valentia': ['Bivona', 'Longobardi', 'Piscopio', 'Porto Salvo', 'San Pietro di Bivona', 'Triparni', 'Vena Inferiore', 'Vena Media', 'Vena Superiore', 'Vibo Marina'],
+  'Zaccanopoli': ['Coccorino'],
+  'Zambrone': ['Daffinà', 'San Giovanni'],
+  'Zungri': ['Papaglionti']
+};
+
+let currentStep = 1;
+let frazioni = [];
+let comuneSel = null;
+
+async function init() {
+  comuneSel = sessionStorage.getItem('civicos_comune_sel');
+  if (!comuneSel) {
+    window.location.href = 'portale.html';
+    return;
+  }
+
+  if (await civicosIsComuneConfigured(comuneSel)) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  document.getElementById('comuneNome').textContent = comuneSel;
+  frazioni = (frazioniNote[comuneSel] || []).slice();
+  renderFrazioni();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/* ── Frazioni management ── */
+function renderFrazioni() {
+  const list = document.getElementById('frazioniList');
+  if (frazioni.length === 0) {
+    list.innerHTML = '<span style="color:#999;font-size:12px;">Nessuna frazione aggiunta</span>';
+    return;
+  }
+  list.innerHTML = frazioni.map((f, i) =>
+    '<span class="frazione-chip">' + escapeHtml(f) + ' <span class="remove" onclick="removeFrazione(' + i + ')">×</span></span>'
+  ).join('');
+}
+
+function addFrazione() {
+  const input = document.getElementById('nuovaFrazione');
+  const nome = input.value.trim();
+  if (!nome) return;
+  if (frazioni.some(f => f.toLowerCase() === nome.toLowerCase())) {
+    alert('Questa frazione è già presente.');
+    return;
+  }
+  frazioni.push(nome);
+  input.value = '';
+  renderFrazioni();
+}
+
+function removeFrazione(idx) {
+  frazioni.splice(idx, 1);
+  renderFrazioni();
+}
+
+/* ── Step navigation ── */
+function setStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+
+  for (let i = 1; i <= 3; i++) {
+    const ind = document.getElementById('stepInd' + i);
+    ind.classList.remove('active', 'done');
+    if (i < n) ind.classList.add('done');
+    else if (i === n) ind.classList.add('active');
+  }
+}
+
+function goStep2() {
+  // Validate step 1
+  const nome = document.getElementById('sNome').value.trim();
+  const cognome = document.getElementById('sCognome').value.trim();
+  const email = document.getElementById('sEmail').value.trim();
+  const pw = document.getElementById('sPassword').value;
+
+  if (!nome || !cognome || !email || !pw) {
+    alert('Compila tutti i campi obbligatori.');
+    return;
+  }
+  if (pw.length < 6) {
+    alert('La password deve avere almeno 6 caratteri.');
+    return;
+  }
+  setStep(2);
+}
+
+function backToStep1() {
+  setStep(1);
+}
+
+async function completeSetup() {
+  const nome = document.getElementById('sNome').value.trim();
+  const cognome = document.getElementById('sCognome').value.trim();
+  const email = document.getElementById('sEmail').value.trim();
+  const password = document.getElementById('sPassword').value;
+  const telefono = document.getElementById('sTelefono').value.trim();
+  const btn = document.querySelector('#step2 .btn-success');
+  if (btn) { btn.disabled = true; btn.textContent = 'Configurazione…'; }
+
+  try {
+    await civicosSetupSindaco({
+      comuneName: comuneSel,
+      email: email,
+      password: password,
+      nome: nome,
+      cognome: cognome,
+      telefono: telefono,
+      frazioni: frazioni,
+      info: {
+        indirizzo: document.getElementById('cIndirizzo').value.trim(),
+        telefono: document.getElementById('cTelComune').value.trim(),
+        pec: document.getElementById('cPec').value.trim()
+      }
+    });
+
+    document.getElementById('successMsg').textContent =
+      'Il portale di ' + comuneSel + ' è pronto. Ora puoi accedere con le credenziali del Sindaco.';
+    setStep(3);
+  } catch (e) {
+    alert(e.code ? civicosAuthErrorMessage(e.code) : (e.message || 'Errore durante la configurazione'));
+    if (btn) { btn.disabled = false; btn.textContent = 'Completa configurazione ✓'; }
+  }
+}
+
+function goToLogin() {
+  window.location.href = 'index.html';
+}
+
+function togglePw(id) {
+  const pw = document.getElementById(id);
+  const btn = pw.nextElementSibling;
+  if (pw.type === 'password') {
+    pw.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    pw.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

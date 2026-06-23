@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Scadenze Comunali</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html">Dashboard</a>
+  <a href="segnalazioni.html">Segnalazioni</a>
+  <a href="prenotazioni.html">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="comunicazioni.html">Comunicazioni</a>
+  <a href="aziende.html">Aziende e Società</a>
+  <a href="mezzi.html">Mezzi e Dipendenti</a>
+  <a href="scadenze.html" class="active">Scadenze</a>
+  <a href="utenti.html">Utenti</a>
+  <a href="#" class="logout-link" onclick="civicosLogout()">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <!-- Pannello attivazione -->
+  <div id="servicePanel" class="service-activation-panel">
+    <div class="service-activation-header">
+      <div class="service-activation-info">
+        <span class="service-activation-icon" id="serviceIcon">●</span>
+        <div>
+          <strong id="serviceStatusLabel">Sezione disattivata</strong>
+          <p id="servicePeriodLabel" style="font-size:12px;color:#888;margin:2px 0 0;">Attiva per gestire scadenze, bandi e utenze comunali</p>
+        </div>
+      </div>
+      <div class="service-activation-toggle">
+        <label class="switch">
+          <input type="checkbox" id="serviceToggle" onchange="toggleSection()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div id="sectionContent">
+
+  <div class="page-header">
+    <h1>📅 Scadenze Comunali</h1>
+    <button class="btn btn-primary" onclick="openScadenzaModal()">+ Nuova Scadenza</button>
+  </div>
+
+  <div class="stats">
+    <div class="card"><h3>Totale scadenze</h3><p id="statTotale">0</p></div>
+    <div class="card"><h3>In scadenza (30gg)</h3><p id="statProssime" style="color:#E65100;">0</p></div>
+    <div class="card"><h3>Scadute</h3><p id="statScadute" style="color:#C62828;">0</p></div>
+    <div class="card"><h3>Costo annuo totale</h3><p id="statCostoTotale">€ 0</p></div>
+  </div>
+
+  <div class="filters">
+    <select id="filterCategoria">
+      <option value="">Tutte le categorie</option>
+      <option value="Bando">Bando</option>
+      <option value="Utenza luce">Utenza luce</option>
+      <option value="Utenza gas">Utenza gas</option>
+      <option value="Utenza acqua">Utenza acqua</option>
+      <option value="Assicurazione">Assicurazione</option>
+      <option value="Contratto">Contratto</option>
+      <option value="Certificazione">Certificazione</option>
+      <option value="Altro">Altro</option>
+    </select>
+    <select id="filterStato">
+      <option value="">Tutti gli stati</option>
+      <option value="attiva">Attiva</option>
+      <option value="prossima">In scadenza</option>
+      <option value="scaduta">Scaduta</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="Cerca scadenza…">
+    <button class="btn btn-outline" onclick="exportExcel()" style="margin-left:auto;">📥 Excel</button>
+    <button class="btn btn-outline" onclick="exportPDF()">📄 PDF</button>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr>
+        <th>Descrizione</th><th>Categoria</th><th>Fornitore</th><th>Scadenza</th><th>Stato</th><th>Costo annuo</th><th>Note</th><th></th>
+      </tr></thead>
+      <tbody id="scadenzeBody"></tbody>
+    </table>
+  </div>
+
+  </div><!-- /sectionContent -->
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="scadenzaModal">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeScadenzaModal()">&times;</button>
+    <h2 id="scadenzaModalTitle">Nuova Scadenza</h2>
+    <input type="hidden" id="editScadenzaId">
+    <div class="form-group"><label>Descrizione</label><input type="text" id="scDescrizione" placeholder="Es. Bando pulizia strade 2025"></div>
+    <div class="form-group"><label>Categoria</label>
+      <select id="scCategoria">
+        <option>Bando</option><option>Utenza luce</option><option>Utenza gas</option><option>Utenza acqua</option>
+        <option>Assicurazione</option><option>Contratto</option><option>Certificazione</option><option>Altro</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Fornitore / Società</label><input type="text" id="scFornitore" placeholder="Es. Enel Energia"></div>
+    <div class="form-group"><label>Data scadenza</label><input type="date" id="scData"></div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label>Costo mensile (€)</label><input type="number" id="scCostoMensile" min="0" step="0.01" placeholder="0"></div>
+      <div class="form-group" style="flex:1"><label>Costo annuo (€)</label><input type="number" id="scCostoAnnuo" min="0" step="0.01" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label>Protocollo / Riferimento</label><input type="text" id="scProtocollo" placeholder="N. protocollo o CIG"></div>
+    <div class="form-group"><label>Note</label><textarea id="scNote" rows="2" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;" placeholder="Note aggiuntive…"></textarea></div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="saveScadenza()">Salva</button>
+      <button class="btn btn-outline" onclick="closeScadenzaModal()">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="civicos-firestore.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script src="portale-auth.js"></script>
+<script src="scadenze.js"></script>
+
+<style>
+.switch { position:relative; display:inline-block; width:50px; height:26px; }
+.switch input { opacity:0; width:0; height:0; }
+.slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; border-radius:26px; transition:.3s; }
+.slider:before { position:absolute; content:""; height:20px; width:20px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; }
+.switch input:checked + .slider { background:#2E7D32; }
+.switch input:checked + .slider:before { transform:translateX(24px); }
+.service-activation-panel { background:#fff; border-radius:10px; padding:18px 20px; margin-bottom:20px; border:1px solid #e0e4ea; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.service-activation-header { display:flex; align-items:center; justify-content:space-between; }
+.service-activation-info { display:flex; align-items:center; gap:12px; }
+.service-activation-icon { font-size:22px; line-height:1; }
+.service-disabled-overlay { opacity:.45; pointer-events:none; }
+
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.4); z-index:500; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:#fff; border-radius:14px; padding:28px; width:520px; max-height:90vh; overflow-y:auto; position:relative; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+.modal-box h2 { font-size:20px; color:#1E4E8C; margin-bottom:18px; }
+.modal-box .close-btn { position:absolute; top:14px; right:14px; background:none; border:none; font-size:24px; cursor:pointer; color:#888; }
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:13px; font-weight:600; color:#555; margin-bottom:4px; }
+.form-group input, .form-group select { width:100%; padding:9px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; outline:none; }
+.form-group input:focus, .form-group select:focus { border-color:#1E4E8C; }
+.form-row { display:flex; gap:14px; }
+
+.badge-attiva { background:#e8f5e9; color:#2E7D32; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-prossima { background:#fff3e0; color:#E65100; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-scaduta { background:#ffebee; color:#C62828; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+</style>
+</body>
+</html>

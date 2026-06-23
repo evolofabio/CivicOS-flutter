@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Prenotazioni</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html">Dashboard</a>
+  <a href="segnalazioni.html">Segnalazioni</a>
+  <a href="prenotazioni.html" class="active">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="comunicazioni.html">Comunicazioni</a>
+  <a href="aziende.html">Aziende e Società</a>
+  <a href="mezzi.html">Mezzi e Dipendenti</a>
+  <a href="scadenze.html">Scadenze</a>
+  <a href="utenti.html">Utenti</a>
+  <a href="#" class="logout-link" onclick="civicosLogout()">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <div class="page-header">
+    <h1>Gestione Prenotazioni Ingombranti</h1>
+    <span id="totalLabel" style="color:#888;font-size:14px;"></span>
+  </div>
+
+  <div class="filters">
+    <select id="filterStato">
+      <option value="">Tutti gli stati</option>
+      <option value="Confermata">Confermata</option>
+      <option value="In attesa">In attesa</option>
+      <option value="Completata">Completata</option>
+    </select>
+    <select id="filterTipo">
+      <option value="">Tutti i tipi</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="Cerca per indirizzo o note…" />
+  </div>
+
+  <div class="table-box">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Data ritiro</th>
+          <th>Tipologia</th>
+          <th>Indirizzo</th>
+          <th>Note</th>
+          <th>Stato</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats" style="margin-top:24px;">
+    <div class="card">
+      <h3>Totale prenotazioni</h3>
+      <p id="statTotal">0</p>
+    </div>
+    <div class="card">
+      <h3>In attesa</h3>
+      <p id="statPending">0</p>
+    </div>
+    <div class="card">
+      <h3>Confermate</h3>
+      <p id="statConfirmed">0</p>
+    </div>
+    <div class="card">
+      <h3>Completate</h3>
+      <p id="statDone">0</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-overlay" id="detailPanel">
+  <button class="close-btn" onclick="closeDetail()">&times;</button>
+  <h2 id="detailTitle"></h2>
+  <div id="detailContent"></div>
+  <div class="actions" id="detailActions"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script src="portale-auth.js"></script>
+<script src="prenotazioni.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "civicos-bb9f7"
+  },
+  "targets": {
+    "civicos-bb9f7": {
+      "hosting": {
+        "app": ["civicos-bb9f7"],
+        "portale": ["civicos-portale"],
+        "admin": ["civicos-admin"],
+        "landing": ["civicos-landing"]
+      }
+    }
+  }
+}

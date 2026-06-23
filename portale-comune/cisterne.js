@@ -44,43 +44,42 @@ async function deleteCisterna(id) {
 
 var motivazioni = [];
 
-// ── Service activation config ──
-var cisterneConfigKey = (typeof civicosStorageKey === 'function')
-  ? civicosStorageKey('civicos_cisterne_config')
-  : 'civicos_cisterne_config';
+var serviceConfig = {
+  attivo: true,
+  modalita: 'sempre',
+  dal: '',
+  al: ''
+};
 
-function loadServiceConfig() {
-  var defaults = {
-    // Default true per non bloccare una sezione storicamente operativa.
-    attivo: true,
-    modalita: 'sempre',
-    dal: '',
-    al: ''
-  };
-  try {
-    var raw = localStorage.getItem(cisterneConfigKey);
-    if (!raw) return defaults;
-    var parsed = JSON.parse(raw) || {};
-    return {
-      attivo: typeof parsed.attivo === 'boolean' ? parsed.attivo : defaults.attivo,
-      modalita: parsed.modalita === 'periodo' ? 'periodo' : 'sempre',
-      dal: parsed.dal || '',
-      al: parsed.al || ''
-    };
-  } catch (e) {
-    return defaults;
+async function loadServiceConfig() {
+  if (typeof civicosLoadSectionConfig === 'function') {
+    serviceConfig = await civicosLoadSectionConfig('cisterne', serviceConfig);
   }
+  if (typeof comuneRef !== 'undefined' && comuneRef) {
+    try {
+      var doc = await comuneRef.collection('config').doc('servizi').get();
+      if (doc.exists && doc.data().motivazioniCisterna) {
+        motivazioni = doc.data().motivazioniCisterna;
+      }
+    } catch (e) {}
+  }
+  return serviceConfig;
 }
 
-var serviceConfig = loadServiceConfig();
-
-// ── Populate motivazione filter ──
-var filterMotivazione = document.getElementById('filterMotivazione');
-motivazioni.forEach(function(m) {
-  var opt = document.createElement('option');
-  opt.value = m; opt.textContent = m;
-  filterMotivazione.appendChild(opt);
-});
+function populateMotivazioniFilter() {
+  var filterMotivazione = document.getElementById('filterMotivazione');
+  if (!filterMotivazione) return;
+  var list = motivazioni.length ? motivazioni : [
+    'Assenza totale di acqua', 'Pressione insufficiente', 'Cisterna vuota (periodo estivo)',
+    'Guasto alla rete idrica', 'Lavori programmati sulla rete', 'Altro'
+  ];
+  filterMotivazione.innerHTML = '<option value="">Tutte le motivazioni</option>';
+  list.forEach(function(m) {
+    var opt = document.createElement('option');
+    opt.value = m; opt.textContent = m;
+    filterMotivazione.appendChild(opt);
+  });
+}
 
 // ── Status ──
 function statusClass(stato) {
@@ -193,13 +192,20 @@ document.getElementById('filterUrgente').addEventListener('change', render);
 document.getElementById('filterSearch').addEventListener('input', render);
 
 // ── Init ──
-loadCisterne();
-initServicePanel();
+async function initCisternePage() {
+  await loadServiceConfig();
+  populateMotivazioniFilter();
+  initServicePanel();
+  loadCisterne();
+}
+initCisternePage();
 
 // ── Service activation/deactivation ──
 
 function saveServiceConfig() {
-  try { localStorage.setItem(cisterneConfigKey, JSON.stringify(serviceConfig)); } catch(e){}
+  if (typeof civicosSaveSectionConfig === 'function') {
+    civicosSaveSectionConfig('cisterne', serviceConfig);
+  }
 }
 
 function initServicePanel() {
