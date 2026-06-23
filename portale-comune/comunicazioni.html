@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Comunicazioni</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="comunicazioni.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html">Dashboard</a>
+  <a href="segnalazioni.html">Segnalazioni</a>
+  <a href="prenotazioni.html">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="comunicazioni.html" class="active">Comunicazioni</a>
+  <a href="aziende.html">Aziende e Società</a>
+  <a href="mezzi.html">Mezzi e Dipendenti</a>
+  <a href="scadenze.html">Scadenze</a>
+  <a href="utenti.html">Utenti</a>
+  <a href="#" class="logout-link" onclick="civicosLogout()">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <h1>Comunicazioni ai Cittadini</h1>
+    <button class="btn btn-primary" id="btnNuovoPost" onclick="openComposer()">+ Nuovo post</button>
+  </div>
+
+  <!-- ── Composer ── -->
+  <div id="composerWrap" class="composer-wrap" style="display:none">
+    <div class="composer-box">
+      <div class="composer-top">
+        <div class="composer-avatar">🏛️</div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+          <input type="text" id="compTitolo" class="composer-title-input" placeholder="Titolo *" />
+          <textarea id="compTesto" class="composer-textarea" placeholder="Scrivi il messaggio per i cittadini…" rows="3" oninput="autoGrowComposer(this)"></textarea>
+        </div>
+      </div>
+
+      <div id="compMediaPreview" class="composer-media-preview" style="display:none">
+        <button class="comp-media-remove" onclick="clearComposerMedia()" title="Rimuovi media">✕</button>
+        <img id="compMediaImg" style="display:none;width:100%;border-radius:8px;object-fit:cover;max-height:320px" alt="preview" />
+        <video id="compMediaVid" controls style="display:none;width:100%;border-radius:8px;max-height:320px"></video>
+      </div>
+
+      <div class="composer-meta">
+        <div class="composer-meta-row">
+          <div class="composer-field">
+            <label>Tipologia</label>
+            <select id="compTipo">
+              <option value="servizio">🔧 Servizio</option>
+              <option value="allerta">⚠️ Allerta</option>
+              <option value="evento">🎉 Evento</option>
+              <option value="istituzionale">🏛️ Istituzionale</option>
+            </select>
+          </div>
+          <div class="composer-field">
+            <label>Canale</label>
+            <select id="compCanale">
+              <option value="comunicazione">📢 Comunicazione</option>
+              <option value="news">📰 News</option>
+            </select>
+          </div>
+          <div class="composer-field" style="flex:2">
+            <label>Priorità</label>
+            <div id="compPrioChips" class="prio-chips">
+              <button class="prio-chip active" data-prio="normale" onclick="setComposerPriority('normale')">Normale</button>
+              <button class="prio-chip" data-prio="importante" onclick="setComposerPriority('importante')">Importante</button>
+              <button class="prio-chip" data-prio="urgente" onclick="setComposerPriority('urgente')">Urgente</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="composer-meta-row">
+          <div class="composer-field" style="flex:2">
+            <label>Destinatari</label>
+            <div id="compFrazioniWrap" style="display:none">
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px" id="compFrazioniCheckboxes"></div>
+              <button type="button" class="btn-text" onclick="toggleCompFrazioni()">Seleziona/Deseleziona tutte</button>
+            </div>
+            <div id="compFrazioniEmpty" style="font-size:12px;color:#888;padding:6px 0">Tutti i cittadini</div>
+          </div>
+          <div class="composer-field" style="flex:1">
+            <label>Zona libera</label>
+            <input type="text" id="compZona" placeholder="Es. Centro storico…" />
+          </div>
+        </div>
+
+        <div class="composer-meta-row">
+          <div class="composer-field" style="flex:1">
+            <label>Allegati PDF/immagini aggiuntivi</label>
+            <input type="file" id="compAllegatiInput" multiple accept="image/*,.pdf" style="display:none" onchange="handleCompAllegati(this.files)">
+            <div id="compAllegatiList" class="file-list"></div>
+            <button type="button" class="btn-text" onclick="document.getElementById('compAllegatiInput').click()">+ Aggiungi allegati</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer-toolbar">
+        <div class="composer-actions-left">
+          <button class="toolbar-btn" onclick="triggerMediaPick()" title="Foto / Video">
+            <span>🖼️</span> Foto / Video
+          </button>
+        </div>
+        <div class="composer-actions-right">
+          <button class="btn btn-outline" onclick="closeComposer()">Annulla</button>
+          <button class="btn btn-outline" onclick="saveCompDraft()">Bozza</button>
+          <button class="btn btn-primary" id="btnPublishComp" onclick="publishComp()">Pubblica</button>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="compMediaInput" accept="image/*,video/*" style="display:none" onchange="handleComposerMedia(this.files)">
+  </div>
+
+  <!-- ── Stats ── -->
+  <div class="stats" style="margin-bottom:20px;">
+    <div class="card"><h3>Totale</h3><p id="statTotal">0</p></div>
+    <div class="card"><h3>Attivi</h3><p id="statActive">0</p></div>
+    <div class="card"><h3>Bozze</h3><p id="statDraft">0</p></div>
+    <div class="card"><h3>Archiviati</h3><p id="statArchived">0</p></div>
+  </div>
+
+  <!-- ── Tab canale ── -->
+  <div class="content-tabs" role="tablist">
+    <button id="tabAll" class="content-tab active" onclick="setCanaleView('all')">Tutti</button>
+    <button id="tabComunicazioni" class="content-tab" onclick="setCanaleView('comunicazione')">Comunicazioni</button>
+    <button id="tabNews" class="content-tab" onclick="setCanaleView('news')">News</button>
+  </div>
+
+  <!-- ── Filtri ── -->
+  <div class="filters">
+    <select id="filterTipo"><option value="">Tutti i tipi</option><option value="servizio">Servizio</option><option value="allerta">Allerta</option><option value="evento">Evento</option><option value="istituzionale">Istituzionale</option></select>
+    <select id="filterStato"><option value="">Tutti gli stati</option><option value="attivo">Attivo</option><option value="bozza">Bozza</option><option value="archiviato">Archiviato</option></select>
+    <input type="text" id="filterSearch" placeholder="Cerca…" />
+  </div>
+
+  <!-- ── Feed ── -->
+  <div id="postsFeed" class="posts-feed"></div>
+
+</div>
+
+<!-- View / Edit overlay -->
+<div class="detail-overlay" id="viewPanel">
+  <button class="close-btn" onclick="closeViewPanel()">&times;</button>
+  <div id="viewContent"></div>
+  <div id="viewActions" class="view-actions-bar"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="civicos-firestore.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script src="portale-auth.js"></script>
+<script src="comunicazioni.js"></script>
+</body>
+</html>

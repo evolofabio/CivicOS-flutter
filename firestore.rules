@@ -1,0 +1,178 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /// Recupera il comuneId del bootstrap globale dell'utente corrente.
+    function myComuneId() {
+      return get(/databases/$(database)/documents/utenti/$(request.auth.uid)).data.comuneId;
+    }
+
+    /// L'utente autenticato appartiene al comune indicato nel path.
+    function belongsToComune(comuneId) {
+      return isSignedIn() && myComuneId() == comuneId;
+    }
+
+    /// Admin piattaforma CivicOS (portale-admin).
+    function isPlatformAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid));
+    }
+
+    /// L'utente è operatore abilitato per il comune.
+    function isOperatore(comuneId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/comuni/$(comuneId)/operatori/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/comuni/$(comuneId)/operatori/$(request.auth.uid)).data.abilitato == true;
+    }
+
+    // ── Bootstrap globale (solo {comuneId, email, fcmToken}) ─────────────────
+    match /utenti/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ── Admin piattaforma ────────────────────────────────────────────────────
+    match /platform_admins/{adminId} {
+      allow read: if isSignedIn() && request.auth.uid == adminId;
+      allow write: if false;
+    }
+
+    // ── Piattaforma (audit, impostazioni) ────────────────────────────────────
+    match /platform/{docId} {
+      allow read, write: if isPlatformAdmin();
+      match /{subcollection}/{subDocId} {
+        allow read, write: if isPlatformAdmin();
+      }
+    }
+
+    // ── Tenant root ───────────────────────────────────────────────────────────
+    match /comuni/{comuneId} {
+      allow read: if belongsToComune(comuneId) || isOperatore(comuneId) || isPlatformAdmin();
+      allow write: if isOperatore(comuneId) || isPlatformAdmin();
+
+      // ── Profilo cittadino tenant-scoped ─────────────────────────────────────
+      match /utenti/{userId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      // ── Operatori del comune ────────────────────────────────────────────────
+      match /operatori/{userId} {
+        allow read: if belongsToComune(comuneId) || isOperatore(comuneId) || isPlatformAdmin();
+        // Ogni operatore può aggiornare il proprio doc (es. fcmToken)
+        allow write: if isSignedIn() && request.auth.uid == userId;
+        // Gli operatori admin possono gestire altri operatori
+        allow create, update, delete: if isOperatore(comuneId);
+      }
+
+      // ── Comunicazioni ───────────────────────────────────────────────────────
+      match /comunicazioni/{docId} {
+        allow read: if belongsToComune(comuneId);
+        allow write: if isOperatore(comuneId);
+      }
+
+      // ── Segnalazioni ────────────────────────────────────────────────────────
+      match /segnalazioni/{docId} {
+        allow read: if belongsToComune(comuneId) || isOperatore(comuneId);
+        // Chiunque appartenga al comune può creare; solo il proprietario o un
+        // operatore può aggiornare/eliminare.
+        allow create: if belongsToComune(comuneId);
+        allow update, delete: if isOperatore(comuneId) ||
+          (isSignedIn() && resource.data.uid == request.auth.uid);
+      }
+
+      // ── Prenotazioni ────────────────────────────────────────────────────────
+      match /prenotazioni/{docId} {
+        // Il cittadino vede solo le proprie; l'operatore vede tutte.
+        allow read: if isOperatore(comuneId) ||
+          (isSignedIn() && resource.data.uid == request.auth.uid);
+        allow create: if belongsToComune(comuneId);
+        allow update, delete: if isOperatore(comuneId) ||
+          (isSignedIn() && resource.data.uid == request.auth.uid);
+      }
+
+      // ── Calendari ───────────────────────────────────────────────────────────
+      match /calendari/{docId} {
+        allow read: if belongsToComune(comuneId);
+        allow write: if isOperatore(comuneId);
+      }
+
+      // ── Cisterne ────────────────────────────────────────────────────────────
+      match /cisterne/{docId} {
+        allow read: if belongsToComune(comuneId);
+        allow write: if isOperatore(comuneId);
+      }
+
+      // ── Scadenze ────────────────────────────────────────────────────────────
+      match /scadenze/{docId} {
+        allow read: if belongsToComune(comuneId);
+        allow write: if isOperatore(comuneId);
+      }
+
+      // ── Aziende ─────────────────────────────────────────────────────────────
+      match /aziende/{docId} {
+        allow read: if belongsToComune(comuneId);
+        allow write: if isOperatore(comuneId);
+
+        match /dipendenti/{dipId} {
+          allow read: if belongsToComune(comuneId);
+          allow write: if isOperatore(comuneId);
+        }
+      }
+
+      // ── Mezzi ────────────────────────────────────────────────────────────────
+      match /mezzi/{docId} {
+        allow read: if belongsToComune(comuneId);
+        allow write: if isOperatore(comuneId);
+      }
+
+      // ── Storico configurazioni (portale-admin) ──────────────────────────────
+      match /configHistory/{versionId} {
+        allow read, write: if isOperatore(comuneId) || isPlatformAdmin();
+      }
+
+      // ── Config sezioni (servizi app, toggle portale) ─────────────────────────
+      match /config/{sectionId} {
+        allow read: if belongsToComune(comuneId) || isOperatore(comuneId);
+        allow write: if isOperatore(comuneId);
+      }
+
+      // ── Dipendenti comunali (portale mezzi) ─────────────────────────────────
+      match /dipendenti_comunali/{docId} {
+        allow read: if belongsToComune(comuneId) || isOperatore(comuneId);
+        allow write: if isOperatore(comuneId);
+      }
+
+      // ── Statistiche (sola lettura; scritte da Cloud Functions) ───────────────
+      match /statistiche/{periodo} {
+        allow read: if belongsToComune(comuneId) || isOperatore(comuneId);
+        allow write: if false;
+      }
+
+      // ── Fallback per subcollection future ────────────────────────────────────
+      match /{collection}/{docId} {
+        allow read: if belongsToComune(comuneId) || isOperatore(comuneId);
+        allow write: if isOperatore(comuneId);
+      }
+    }
+
+    // ── Contatti dalla landing page (write-only pubblico) ──────────────────
+    match /contatti/{contactId} {
+      allow create: if request.resource.data.keys().hasAll(['nome', 'email', 'messaggio'])
+        && request.resource.data.nome is string
+        && request.resource.data.email is string
+        && request.resource.data.messaggio is string
+        && request.resource.data.nome.size() > 0
+        && request.resource.data.nome.size() <= 100
+        && request.resource.data.email.size() > 3
+        && request.resource.data.email.size() <= 150
+        && request.resource.data.messaggio.size() > 0
+        && request.resource.data.messaggio.size() <= 2000;
+      allow read, update, delete: if false;
+    }
+  }
+}

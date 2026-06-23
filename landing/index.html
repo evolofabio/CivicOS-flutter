@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-YWBBZCVMJF"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-YWBBZCVMJF');
+</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CivicOS — La piattaforma digitale per i comuni italiani</title>
+<meta name="description" content="CivicOS digitalizza la raccolta differenziata: app per i cittadini, portale operativo per il comune, dashboard analytics. Meno rifiuti in strada, più efficienza."/>
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="apple-touch-icon" href="assets/favicon.png" />
+<link rel="canonical" href="https://civicos.it" />
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://civicos.it" />
+<meta property="og:title" content="CivicOS — La piattaforma digitale per i comuni italiani" />
+<meta property="og:description" content="CivicOS digitalizza la raccolta differenziata: app per i cittadini, portale operativo per il comune, dashboard analytics. Meno rifiuti in strada, più efficienza." />
+<meta property="og:image" content="https://civicos.it/assets/og-image.png" />
+<meta property="og:locale" content="it_IT" />
+<meta property="og:site_name" content="CivicOS" />
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="CivicOS — La piattaforma digitale per i comuni italiani" />
+<meta name="twitter:description" content="CivicOS digitalizza la raccolta differenziata: app per i cittadini, portale operativo per il comune, dashboard analytics." />
+<meta name="twitter:image" content="https://civicos.it/assets/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Sora:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+/* ── Reset & tokens ──────────────────────────────────── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#0A84FF;--cyan:#22C7CF;--green:#30D158;--orange:#FF9F0A;--purple:#BF5AF2;
+  --dark:#E8EEF8;--d1:#F4F7FF;--d2:#EAEEfb;--d3:#E0E7F6;--d4:#D4DCEE;
+  --glass:rgba(255,255,255,.82);--gb:rgba(0,0,0,.09);
+  --text:#0D1735;--text2:#4B5678;--text3:#8290A8;
+  --r-sm:10px;--r-md:18px;--r-lg:26px;--r-xl:40px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--d1);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}
+::selection{background:rgba(10,132,255,.18);color:var(--text)}
+
+/* ── Nav ─────────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:999;padding:0 48px;height:70px;display:flex;align-items:center;justify-content:space-between;transition:all .35s}
+nav.scrolled{background:rgba(244,247,255,.94);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid rgba(0,0,0,.08)}
+.nav-logo{display:flex;align-items:center;gap:11px;text-decoration:none}
+.nav-logo img{height:40px;filter:brightness(1)}
+.nav-logo-text{font-family:'Sora',sans-serif;font-size:21px;font-weight:900;letter-spacing:-.6px;background:linear-gradient(125deg,#0D3B7A 0%,#1565C0 55%,#0288D1 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-links{display:flex;align-items:center;gap:38px;list-style:none}
+.nav-links a{font-size:14px;font-weight:500;color:var(--text2);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--blue)!important;color:#fff!important;padding:9px 24px;border-radius:980px;font-weight:700!important;font-size:14px!important;transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .25s!important;box-shadow:0 0 24px rgba(10,132,255,.35)}
+.nav-cta:hover{transform:scale(1.06)!important;box-shadow:0 0 44px rgba(10,132,255,.55)!important}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn-primary{display:inline-flex;align-items:center;gap:9px;background:var(--blue);color:#fff;font-size:16px;font-weight:700;padding:17px 38px;border-radius:980px;border:none;cursor:pointer;text-decoration:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;box-shadow:0 0 48px rgba(10,132,255,.4),0 4px 24px rgba(0,0,0,.35)}
+.btn-primary:hover{transform:scale(1.05) translateY(-3px);box-shadow:0 0 72px rgba(10,132,255,.65),0 8px 32px rgba(0,0,0,.5)}
+.btn-ghost{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.9);color:var(--text);font-size:16px;font-weight:600;padding:17px 38px;border-radius:980px;border:1px solid rgba(0,0,0,.13);cursor:pointer;text-decoration:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(12px)}
+.btn-ghost:hover{background:#fff;border-color:rgba(0,0,0,.22);transform:scale(1.03) translateY(-2px)}
+a:focus-visible,button:focus-visible{outline:3px solid rgba(34,199,207,.6);outline-offset:3px}
+
+/* ── Hero ────────────────────────────────────────────── */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 40px 60px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 70% 60% at 50% -10%,rgba(10,132,255,.13) 0%,transparent 65%),radial-gradient(ellipse 55% 40% at 85% 85%,rgba(48,209,88,.08) 0%,transparent 55%),radial-gradient(ellipse 45% 35% at 5% 85%,rgba(34,199,207,.08) 0%,transparent 55%),var(--d1)}
+#particleCanvas{position:absolute;inset:0;z-index:1;pointer-events:none}
+.hero-grid{position:absolute;inset:0;z-index:1;background-image:linear-gradient(rgba(10,59,122,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(10,59,122,.055) 1px,transparent 1px);background-size:70px 70px;mask-image:radial-gradient(ellipse 80% 70% at 50% 50%,black 25%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 50%,black 25%,transparent 75%)}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0}
+.orb-1{width:700px;height:700px;background:radial-gradient(circle,rgba(10,132,255,.22) 0%,transparent 70%);top:-280px;left:-220px;animation:orbFloat 18s ease-in-out infinite alternate}
+.orb-2{width:550px;height:550px;background:radial-gradient(circle,rgba(48,209,88,.18) 0%,transparent 70%);bottom:-180px;right:-180px;animation:orbFloat 14s ease-in-out infinite alternate-reverse}
+.orb-3{width:450px;height:450px;background:radial-gradient(circle,rgba(34,199,207,.17) 0%,transparent 70%);top:35%;left:55%;animation:orbFloat 22s ease-in-out infinite alternate;opacity:.7}
+@keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(50px,40px) scale(1.1)}}
+.hero-content{position:relative;z-index:3;max-width:920px}
+.hero-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(10,132,255,.1);border:1px solid rgba(10,132,255,.25);color:#1565C0;font-size:12.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:8px 20px;border-radius:980px;margin-bottom:40px;backdrop-filter:blur(12px);animation:fadeUp .8s ease both}
+.badge-dot{width:8px;height:8px;background:var(--blue);border-radius:50%;animation:blink 2.2s infinite}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+.hero h1{font-family:'Sora',sans-serif;font-size:clamp(52px,8.5vw,96px);font-weight:900;line-height:1.03;letter-spacing:-3.5px;margin-bottom:30px;animation:fadeUp .9s .12s ease both}
+.h1-plain{color:var(--text)}
+.h1-gradient{background:linear-gradient(125deg,#0D3B7A 0%,#1565C0 30%,#0288D1 60%,#00838F 85%);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradShift 6s ease infinite}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hero-sub{font-size:clamp(17px,2.2vw,21px);font-weight:400;color:var(--text2);max-width:660px;margin:0 auto 52px;line-height:1.65;animation:fadeUp 1s .22s ease both}
+.hero-sub strong{color:var(--text);font-weight:700}
+.hero-actions{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;animation:fadeUp 1s .32s ease both}
+
+/* ── Phone triptych – iPhone 15 Pro style ───────────── */
+.hero-phones{position:relative;z-index:3;margin-top:56px;display:flex;justify-content:center;align-items:flex-end;animation:fadeUp 1.1s .5s ease both;perspective:1800px;gap:0}
+/* wrapper */
+.iph{position:relative;flex-shrink:0;transition:transform .55s cubic-bezier(.34,1.2,.64,1)}
+/* titanium frame */
+.iph-outer{width:248px;height:534px;border-radius:50px;background:linear-gradient(160deg,#3C3C3E 0%,#1C1C1E 25%,#0E0E10 60%,#2C2C2E 100%);position:relative;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.18),inset 0 0 0 8.5px #060608,0 0 0 1px rgba(0,0,0,.8),0 50px 100px rgba(0,0,0,.85)}
+/* volume buttons left */
+.iph-outer::before{content:'';position:absolute;left:-3.5px;top:102px;width:3.5px;height:24px;border-radius:3px 0 0 3px;background:#2A2A2C;box-shadow:-1px 0 3px rgba(0,0,0,.6),0 38px 0 #2A2A2C,-1px 38px 3px rgba(0,0,0,.6)}
+/* power button right */
+.iph-outer::after{content:'';position:absolute;right:-3.5px;top:130px;width:3.5px;height:60px;border-radius:0 3px 3px 0;background:#2A2A2C;box-shadow:1px 0 3px rgba(0,0,0,.6)}
+/* mute toggle */
+.iph-mute{position:absolute;left:-3.5px;top:72px;width:3.5px;height:22px;border-radius:3px 0 0 3px;background:#2A2A2C;box-shadow:-1px 0 3px rgba(0,0,0,.6);z-index:5}
+/* screen */
+.iph-screen{position:absolute;inset:8.5px;border-radius:42px;overflow:hidden;background:#F8FAFD;display:flex;flex-direction:column}
+/* Dynamic Island */
+.iph-island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:100px;height:30px;background:#000;border-radius:20px;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+/* status bar – inherits AppBar gradient */
+.iph-sb{height:54px;background:linear-gradient(135deg,#0D3B7A,#1565C0);display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 8px;flex-shrink:0}
+.iph-sb-time{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.iph-sb-icons{display:flex;align-items:center;gap:5px;font-size:9px;color:rgba(255,255,255,.9);font-weight:700}
+/* AppBar strip */
+.iph-appbar{height:44px;background:linear-gradient(135deg,#0D3B7A,#1565C0);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;box-shadow:0 1px 0 rgba(0,0,0,.12)}
+.iph-appbar-title{font-size:13.5px;font-weight:800;color:#fff;flex:1;text-align:center;letter-spacing:-.3px}
+.iph-appbar-icon{font-size:17px;color:rgba(255,255,255,.82);line-height:1;width:18px;text-align:center}
+/* content */
+.iph-body{flex:1;overflow:hidden;padding:12px 13px;background:#F8FAFD}
+.iph-card{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.iph-card-title{font-size:9.5px;font-weight:800;color:#212121;margin-bottom:3px;letter-spacing:-.1px}
+.iph-card-sub{font-size:8px;color:#9E9E9E}
+.iph-section{font-size:11px;font-weight:800;color:#212121;margin:10px 0 7px;letter-spacing:-.2px}
+/* waste chips */
+.wchip{display:inline-flex;align-items:center;gap:4px;border-radius:8px;padding:5px 9px;font-size:8.5px;font-weight:700}
+.wch-umido{background:rgba(121,85,72,.13);color:#795548}
+.wch-plastica{background:rgba(255,152,0,.15);color:#E65100}
+.wch-carta{background:rgba(21,101,192,.12);color:#1565C0}
+.wch-vetro{background:rgba(46,125,50,.13);color:#2E7D32}
+.wch-metalli{background:rgba(97,97,97,.12);color:#424242}
+.wch-secco{background:rgba(97,97,97,.14);color:#616161}
+/* phone variants */
+.iph--center{transform:translateY(-30px);z-index:2}
+.iph--center .iph-outer{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22),inset 0 0 0 8.5px #060608,0 0 0 1px rgba(0,0,0,.8),0 60px 130px rgba(0,0,0,.9),0 0 80px rgba(13,59,122,.55),0 0 180px rgba(13,59,122,.2)}
+.iph--left{transform:translateX(24px) rotateY(18deg) scale(0.87);z-index:1;opacity:.76}
+.iph--right{transform:translateX(-24px) rotateY(-18deg) scale(0.87);z-index:1;opacity:.76}
+/* calendario rows */
+.cal-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#fff;border-radius:11px;margin-bottom:6px;box-shadow:0 1px 5px rgba(0,0,0,.07)}
+.cal-row-today{border:2px solid #0D3B7A;box-shadow:0 2px 10px rgba(13,59,122,.15)}
+.cal-dow{font-size:9.5px;font-weight:700;color:#616161}
+.cal-dow-today{color:#0D3B7A;font-weight:800}
+.today-badge{font-size:7px;font-weight:800;background:#0D3B7A;color:#fff;border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle}
+
+/* ── Stats bar ───────────────────────────────────────── */
+.stats-bar{padding:70px 40px;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05)}
+.stats-bar-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.stat-item{text-align:center;padding:20px}
+.stat-num{font-size:clamp(40px,5.5vw,58px);font-weight:900;letter-spacing:-2.5px;display:block;line-height:1;margin-bottom:10px;background:linear-gradient(135deg,#FFF 0%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:13.5px;font-weight:500;color:var(--text3)}
+
+/* ── Products ────────────────────────────────────────── */
+.products{padding:130px 40px;background:var(--d1)}
+.section-header{text-align:center;margin-bottom:80px}
+.eyebrow{font-size:12.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:14px}
+.eyebrow-blue{color:var(--blue)}.eyebrow-cyan{color:var(--cyan)}.eyebrow-green{color:var(--green)}.eyebrow-orange{color:var(--orange)}
+.section-title{font-family:'Sora',sans-serif;font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-2px;line-height:1.08;color:var(--text);margin-bottom:18px}
+.section-desc{font-size:17px;color:var(--text2);line-height:1.65;max-width:580px;margin:0 auto}
+.products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1100px;margin:0 auto}
+.product-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:var(--r-xl);padding:44px 36px 42px;position:relative;overflow:hidden;transition:transform .4s cubic-bezier(.34,1.56,.64,1),border-color .3s,box-shadow .4s;cursor:default;transform-style:preserve-3d;box-shadow:0 2px 20px rgba(0,0,0,.06)}
+.product-card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(ellipse 80% 50% at 50% 0%,var(--glow,rgba(10,132,255,.12)),transparent 70%);opacity:0;transition:opacity .4s;pointer-events:none}
+.product-card:hover{transform:translateY(-10px);border-color:rgba(10,132,255,.3);box-shadow:0 12px 40px rgba(0,0,0,.1)}
+.product-card:hover::before{opacity:1}
+.product-card:hover .pc-icon{box-shadow:0 0 36px var(--icon-glow,rgba(10,132,255,.5))}
+.pc--app{--glow:rgba(10,132,255,.15);--icon-glow:rgba(10,132,255,.55)}
+.pc--comune{--glow:rgba(34,199,207,.12);--icon-glow:rgba(34,199,207,.5)}
+.pc--admin{--glow:rgba(255,159,10,.13);--icon-glow:rgba(255,159,10,.5)}
+.pc-icon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:28px;transition:box-shadow .4s}
+.pc--app .pc-icon{background:linear-gradient(135deg,#0A84FF,#32D2F5)}
+.pc--comune .pc-icon{background:linear-gradient(135deg,#22C7CF,#30D158)}
+.pc--admin .pc-icon{background:linear-gradient(135deg,#FF9F0A,#FF453A)}
+.pc-tag{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:4px 13px;border-radius:980px;margin-bottom:16px;display:inline-block}
+.pc--app .pc-tag{background:rgba(10,132,255,.12);color:#0A5ED9}
+.pc--comune .pc-tag{background:rgba(34,199,207,.14);color:#0E8F96}
+.pc--admin .pc-tag{background:rgba(255,159,10,.15);color:#C47200}
+.product-card h3{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:12px}
+.product-card>p{font-size:14.5px;color:var(--text2);line-height:1.65;margin-bottom:28px}
+.pc-features{list-style:none;display:flex;flex-direction:column;gap:9px}
+.pc-features li{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--text2);font-weight:500}
+.pc-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pc--app .pc-dot{background:var(--blue)}.pc--comune .pc-dot{background:var(--cyan)}.pc--admin .pc-dot{background:var(--orange)}
+
+/* ── Browser section ─────────────────────────────────── */
+.browser-section{padding:120px 40px}
+.browser-wrap{max-width:1140px;margin:0 auto;display:grid;grid-template-columns:1fr 1.15fr;gap:72px;align-items:center}
+.browser-wrap.rev .browser-frame-outer{order:-1}
+.browser-frame-outer{position:relative;filter:drop-shadow(0 40px 80px rgba(0,0,0,.7))}
+.browser-frame-outer::before{content:'';position:absolute;inset:-1px;border-radius:19px;background:linear-gradient(135deg,rgba(10,132,255,.4),rgba(48,209,88,.25),rgba(34,199,207,.3));z-index:-1;animation:borderGlow 4s ease-in-out infinite alternate}
+@keyframes borderGlow{from{opacity:.5}to{opacity:1}}
+.browser-frame{background:#fff;border-radius:18px;border:1px solid rgba(0,0,0,.09);overflow:hidden}
+.browser-chrome{background:rgba(0,0,0,.03);padding:11px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(0,0,0,.07)}
+.bc-dots{display:flex;gap:6px}
+.bc-dot{width:11px;height:11px;border-radius:50%}
+.bc-dot-r{background:#FF5F57}.bc-dot-y{background:#FEBC2E}.bc-dot-g{background:#28C840}
+.bc-url{flex:1;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--text3);display:flex;align-items:center;gap:6px}
+.bc-url-lock{font-size:9px;color:var(--green)}
+.browser-body{padding:20px}
+.dash-layout{display:grid;grid-template-columns:156px 1fr;gap:14px;height:320px}
+.dash-sidebar{background:rgba(0,0,0,.025);border:1px solid rgba(0,0,0,.07);border-radius:12px;padding:12px 0;display:flex;flex-direction:column;gap:2px}
+.dash-sidebar-logo{padding:4px 14px 10px;font-size:11px;font-weight:900;font-family:'Sora',sans-serif;color:var(--text);letter-spacing:-.3px;border-bottom:1px solid rgba(0,0,0,.07);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.dash-logo-dot{width:10px;height:10px;background:var(--blue);border-radius:3px}
+.dash-nav-item{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:7px;margin:0 4px;font-size:10px;font-weight:600;color:var(--text3)}
+.dash-nav-item.active{background:rgba(10,132,255,.15);color:var(--blue);border:1px solid rgba(10,132,255,.2)}
+.dash-nav-icon{font-size:13px}
+.dash-nav-badge{margin-left:auto;font-size:9px;font-weight:800;padding:1px 6px;background:var(--blue);color:#fff;border-radius:980px}
+.dash-main{display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.dash-header{display:flex;align-items:center;justify-content:space-between}
+.dash-title{font-size:13px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.dash-date{font-size:10px;color:var(--text3);font-weight:600}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi-card{background:rgba(0,0,0,.025);border:1px solid rgba(0,0,0,.07);border-radius:10px;padding:11px 10px}
+.kpi-val{font-size:18px;font-weight:900;letter-spacing:-1px;margin-bottom:3px}
+.kpi-lbl{font-size:8.5px;font-weight:600;color:var(--text3)}
+.kpi-trend{font-size:8px;font-weight:700;margin-top:4px}
+.kpi-trend.up{color:var(--green)}.kpi-trend.dn{color:var(--orange)}
+.chart-area{background:rgba(0,0,0,.02);border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:12px;flex:1;position:relative;overflow:hidden}
+.chart-title{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:10px}
+.chart-bars{display:flex;align-items:flex-end;gap:5px;height:70px}
+.chart-bar{flex:1;border-radius:4px 4px 0 0;position:relative}
+.chart-bar::after{content:attr(data-val);position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:7.5px;font-weight:700;color:var(--text3);white-space:nowrap}
+.chart-xaxis{display:flex;gap:5px;margin-top:6px}
+.chart-xlabel{flex:1;text-align:center;font-size:7.5px;color:var(--text3);font-weight:600}
+.dash-table{background:rgba(0,0,0,.02);border:1px solid rgba(0,0,0,.07);border-radius:10px;overflow:hidden}
+.dash-table-head{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:8px 12px;background:rgba(0,0,0,.03);font-size:8.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.dash-table-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:8px 12px;border-top:1px solid rgba(0,0,0,.05);font-size:9px;color:var(--text2);font-weight:600;align-items:center}
+.float-badge{position:absolute;background:rgba(255,255,255,.96);border:1px solid rgba(0,0,0,.1);border-radius:14px;padding:10px 16px;backdrop-filter:blur(16px);box-shadow:0 12px 32px rgba(0,0,0,.12);display:flex;align-items:center;gap:10px;animation:floatBadge 4s ease-in-out infinite alternate}
+.fb-icon{font-size:22px}.fb-text{line-height:1.3}
+.fb-t1{font-size:11px;font-weight:800;color:var(--text)}
+.fb-t2{font-size:10px;color:var(--text3);font-weight:600}
+.float-badge--tl{top:-18px;left:-28px;animation-direction:alternate}
+.float-badge--br{bottom:-18px;right:-24px;animation-direction:alternate-reverse}
+@keyframes floatBadge{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+
+/* ── Split text ──────────────────────────────────────── */
+.split-text .eyebrow{font-size:12.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.split-text h2{font-family:'Sora',sans-serif;font-size:clamp(30px,3.8vw,46px);font-weight:900;letter-spacing:-2px;line-height:1.1;color:var(--text);margin-bottom:18px}
+.split-text p{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:28px;max-width:500px}
+.split-chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{font-size:12.5px;font-weight:600;padding:6px 15px;border-radius:980px;background:#fff;border:1px solid rgba(0,0,0,.1);color:var(--text2);transition:all .2s}
+.chip:hover{background:#fff;color:var(--text);border-color:rgba(10,132,255,.35)}
+
+/* ── How it works ────────────────────────────────────── */
+.how{padding:130px 40px;background:var(--d2)}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:1100px;margin:72px auto 0}
+.step-card{position:relative;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:var(--r-lg);padding:34px 26px;text-align:center;transition:transform .35s cubic-bezier(.34,1.56,.64,1),border-color .3s,box-shadow .3s;box-shadow:0 2px 14px rgba(0,0,0,.05)}
+.step-card:hover{transform:translateY(-6px);border-color:rgba(10,132,255,.25);box-shadow:0 10px 32px rgba(0,0,0,.09)}
+.step-card:not(:last-child)::after{content:'→';position:absolute;top:50%;right:-16px;transform:translateY(-50%);font-size:20px;color:var(--text3);z-index:2}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;margin-bottom:20px;font-size:16px;font-weight:900;font-family:'Sora',sans-serif}
+.step-icon{font-size:36px;margin-bottom:16px;display:block}
+.step-card h4{font-size:16px;font-weight:800;letter-spacing:-.3px;margin-bottom:10px}
+.step-card p{font-size:13.5px;color:var(--text2);line-height:1.6}
+.step-1 .step-num{background:rgba(10,132,255,.2);color:var(--blue)}
+.step-2 .step-num{background:rgba(34,199,207,.18);color:var(--cyan)}
+.step-3 .step-num{background:rgba(191,90,242,.18);color:var(--purple)}
+.step-4 .step-num{background:rgba(48,209,88,.18);color:var(--green)}
+
+/* ── Modules ─────────────────────────────────────────── */
+.modules{padding:130px 40px;background:var(--d1)}
+.modules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1100px;margin:0 auto}
+.mod-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:var(--r-lg);padding:30px 26px;position:relative;overflow:hidden;transition:transform .35s cubic-bezier(.34,1.56,.64,1),border-color .3s,box-shadow .3s;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.mod-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ma,var(--blue)),transparent);opacity:0;transition:opacity .35s}
+.mod-card:hover{transform:translateY(-5px);box-shadow:0 10px 32px rgba(0,0,0,.09);border-color:rgba(10,132,255,.2)}
+.mod-card:hover::after{opacity:1}
+.mod-icon{font-size:30px;margin-bottom:16px;display:block}
+.mod-card h4{font-size:16px;font-weight:800;letter-spacing:-.3px;margin-bottom:8px}
+.mod-card p{font-size:13.5px;color:var(--text2);line-height:1.6}
+
+/* ── CTA ─────────────────────────────────────────────── */
+.cta-section{padding:110px 40px;background:var(--d2)}
+.cta-split{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+.cta-left h2{font-family:'Sora',sans-serif;font-size:clamp(30px,4vw,50px);font-weight:900;letter-spacing:-2px;line-height:1.1;margin-bottom:18px}
+.cta-left h2 span{background:linear-gradient(135deg,var(--blue) 0%,var(--cyan) 45%,var(--green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cta-left p{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:32px}
+.cta-trust{display:flex;flex-direction:column;gap:10px}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--text2)}
+.trust-icon{font-size:18px;width:24px;text-align:center}
+
+/* ── Contact Form Card ───────────────────────────────── */
+.contact-card{background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:var(--r-xl);padding:44px 40px;box-shadow:0 8px 48px rgba(0,0,0,.08)}
+.contact-card h3{font-size:20px;font-weight:800;letter-spacing:-.4px;margin-bottom:6px}
+.contact-card>.form-sub{font-size:13.5px;color:var(--text3);margin-bottom:28px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-field{display:flex;flex-direction:column;margin-bottom:16px}
+.form-field label{font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:6px;letter-spacing:.2px}
+.form-field input,.form-field textarea,.form-field select{font-family:'Manrope',sans-serif;font-size:14.5px;color:var(--text);background:#F7F9FF;border:1.5px solid rgba(0,0,0,.1);border-radius:12px;padding:11px 16px;outline:none;transition:border-color .2s,box-shadow .2s;resize:none;width:100%}
+.form-field input:focus,.form-field textarea:focus,.form-field select:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(10,132,255,.1);background:#fff}
+.form-field input::placeholder,.form-field textarea::placeholder{color:var(--text3)}
+.form-field input.error,.form-field textarea.error{border-color:#FF453A;box-shadow:0 0 0 3px rgba(255,69,58,.12)}
+.form-honeypot{display:none!important;visibility:hidden}
+.btn-submit{width:100%;padding:15px;border-radius:980px;border:none;background:var(--blue);color:#fff;font-family:'Manrope',sans-serif;font-size:15.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .25s;box-shadow:0 0 36px rgba(10,132,255,.35);margin-top:6px}
+.btn-submit:hover:not(:disabled){transform:scale(1.03);box-shadow:0 0 56px rgba(10,132,255,.55)}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.form-feedback{border-radius:12px;padding:13px 16px;font-size:13.5px;font-weight:600;margin-top:14px;display:none}
+.form-feedback.success{display:block;background:rgba(48,209,88,.1);border:1px solid rgba(48,209,88,.3);color:#1a7a3a}
+.form-feedback.error{display:block;background:rgba(255,69,58,.08);border:1px solid rgba(255,69,58,.25);color:#c0392b}
+@media(max-width:900px){.cta-split{grid-template-columns:1fr}}
+@media(max-width:640px){.contact-card{padding:28px 22px}.form-row{grid-template-columns:1fr}}
+
+/* ── Tech ────────────────────────────────────────────── */
+.tech{padding:80px 40px;background:var(--d1)}
+.tech-inner{max-width:1100px;margin:0 auto;text-align:center}
+.tech-label{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:32px}
+.tech-pills{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.tech-pill{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:980px;padding:11px 22px;font-size:13.5px;font-weight:700;color:var(--text2);transition:all .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.tech-pill:hover{background:#fff;color:var(--text);border-color:rgba(10,132,255,.3);transform:scale(1.07);box-shadow:0 4px 18px rgba(10,132,255,.15)}
+.tp-icon{font-size:18px}
+
+/* ── Footer ──────────────────────────────────────────── */
+footer{background:#000;border-top:1px solid rgba(255,255,255,.06);padding:64px 40px 36px}
+.footer-inner{max-width:1100px;margin:0 auto}
+.footer-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:52px;gap:40px;flex-wrap:wrap}
+.footer-brand{max-width:300px}
+.footer-brand img{height:30px;margin-bottom:14px;filter:brightness(1.1)}
+.footer-brand p{font-size:13.5px;color:var(--text3);line-height:1.7}
+.footer-cols{display:flex;gap:56px;flex-wrap:wrap}
+.footer-col h5{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:18px}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.footer-col a{font-size:13.5px;color:var(--text2);text-decoration:none;transition:color .2s}
+.footer-col a:hover{color:var(--text)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.05);padding-top:26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer-bottom span{font-size:12.5px;color:var(--text3)}
+.footer-heart{color:var(--blue)}
+
+/* ── Reveal ──────────────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(36px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,.61,.36,1)}
+.reveal.visible{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media(max-width:1024px){.browser-wrap{grid-template-columns:1fr}.browser-wrap.rev .browser-frame-outer{order:unset}.steps-grid{grid-template-columns:repeat(2,1fr)}.step-card:nth-child(2)::after,.step-card:nth-child(4)::after{display:none}}
+@media(max-width:900px){.products-grid,.modules-grid{grid-template-columns:1fr 1fr}nav .nav-links{display:none}.stats-bar-inner{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.hero-phones{display:none}}
+@media(max-width:640px){.products-grid,.modules-grid,.steps-grid{grid-template-columns:1fr}.browser-section,.how,.modules,.products,.cta-section,.tech{padding-left:22px;padding-right:22px}nav{padding:0 22px}.hero{padding:120px 22px 70px}.stats-bar{padding:52px 22px}.cta-inner{padding:52px 26px}.hero-actions{flex-direction:column;align-items:center}.step-card:not(:last-child)::after{display:none}}
+
+/* ── Cookie banner ───────────────────────────────────── */
+#cookie-banner{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.1);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;box-shadow:0 -4px 32px rgba(0,0,0,.1);transform:translateY(110%);transition:transform .5s cubic-bezier(.22,.61,.36,1)}
+#cookie-banner.visible{transform:translateY(0)}
+.cookie-text{font-size:13.5px;color:var(--text2);line-height:1.6;flex:1;min-width:220px}
+.cookie-text a{color:var(--blue);text-decoration:none;font-weight:600}
+.cookie-text a:hover{text-decoration:underline}
+.cookie-actions{display:flex;gap:10px;flex-shrink:0}
+.cookie-btn-accept{background:var(--blue);color:#fff;border:none;border-radius:980px;padding:10px 24px;font-size:13.5px;font-weight:700;cursor:pointer;transition:transform .2s,box-shadow .2s;font-family:inherit}
+.cookie-btn-accept:hover{transform:scale(1.04);box-shadow:0 0 24px rgba(10,132,255,.4)}
+.cookie-btn-close{background:transparent;color:var(--text3);border:1px solid rgba(0,0,0,.15);border-radius:980px;padding:10px 20px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.cookie-btn-close:hover{background:rgba(0,0,0,.05);color:var(--text)}
+@media(max-width:640px){#cookie-banner{padding:18px 22px}.cookie-actions{width:100%}.cookie-btn-accept,.cookie-btn-close{flex:1;text-align:center}}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link" style="position:absolute;left:-999px;top:0;background:#fff;color:#0A84FF;padding:8px 16px;z-index:10000;outline:3px solid #22C7CF;outline-offset:2px;transition:left .2s;" onfocus="this.style.left='0'" onblur="this.style.left='-999px'">Salta al contenuto principale</a>
+
+<canvas id="particleCanvas"></canvas>
+
+<!-- Cookie Banner -->
+<div id="cookie-banner" role="dialog" aria-label="Informativa cookie" aria-live="polite">
+  <p class="cookie-text">Utilizziamo cookie tecnici per il corretto funzionamento del sito (Google Fonts). Nessun dato personale viene raccolto. Per saperne di più consulta la nostra <a href="privacy.html">Privacy Policy</a>.</p>
+  <div class="cookie-actions">
+    <button class="cookie-btn-close" id="cookie-close">Solo necessari</button>
+    <button class="cookie-btn-accept" id="cookie-accept">Accetta</button>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav id="navbar" role="navigation" aria-label="Navigazione principale">
+  <a class="nav-logo" href="#">
+    <img src="assets/CivicOS.png" alt="Logo CivicOS, piattaforma digitale per i comuni italiani" />
+    <span class="nav-logo-text">CivicOS</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#prodotti">Prodotti</a></li>
+    <li><a href="#come-funziona">Come funziona</a></li>
+    <li><a href="#moduli">Moduli</a></li>
+    <li><a href="#tech">Tech</a></li>
+    <li><a href="#contatti" class="nav-cta">Richiedi demo</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<main id="main-content" tabindex="-1">
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="badge-dot"></span>Raccolta differenziata digitale &middot; Comuni italiani</div>
+    <h1><span class="h1-plain">Meno rifiuti in strada.<br>Pi&ugrave; raccolta differenziata</span><br><span class="h1-gradient">ogni giorno.</span></h1>
+    <p class="hero-sub"><strong>CivicOS</strong> digitalizza il ciclo di raccolta: i cittadini inviano richieste corrette, il comune le processa in tempo reale e gli operatori intervengono prima che si creino accumuli nelle strade cittadine.</p>
+    <div class="hero-actions">
+      <a href="#prodotti" class="btn-primary">Scopri la piattaforma <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a href="#contatti" class="btn-ghost">Richiedi una demo</a>
+    </div>
+  </div>
+
+  <!-- Phone triptych -->
+  <div class="hero-phones">
+
+    <!-- LEFT: Segnalazioni -->
+    <div class="iph iph--left">
+      <div class="iph-outer">
+        <div class="iph-mute"></div>
+        <div class="iph-screen">
+          <div class="iph-island"></div>
+          <div class="iph-sb"><span class="iph-sb-time">9:41</span><div class="iph-sb-icons"><span>&#9646;&#9646;&#9646;</span><span>WiFi</span><span>&#9646;&#9646;&#9646;</span></div></div>
+          <div class="iph-appbar">
+            <span class="iph-appbar-icon">&#9776;</span>
+            <div class="iph-appbar-title">Segnalazioni</div>
+            <span class="iph-appbar-icon" style="opacity:0">&#9776;</span>
+          </div>
+          <div class="iph-body">
+            <div style="font-size:11.5px;font-weight:800;color:#212121;margin-bottom:2px;letter-spacing:-.2px">Segnala un problema</div>
+            <div style="font-size:8.5px;color:#9E9E9E;margin-bottom:11px">Problematiche ambientali o urbane</div>
+            <div class="iph-card" style="display:flex;align-items:center;gap:9px">
+              <div style="width:32px;height:32px;border-radius:9px;background:#F5F5F5;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#128100;</div>
+              <div style="flex:1"><div class="iph-card-title">Modalit&#224; segnalazione</div><div class="iph-card-sub">I tuoi dati saranno associati</div></div>
+              <div style="width:34px;height:18px;background:#E0E0E0;border-radius:9px;position:relative;flex-shrink:0"><div style="width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:1px;left:1px;box-shadow:0 1px 4px rgba(0,0,0,.28)"></div></div>
+            </div>
+            <div class="iph-card">
+              <div class="iph-card-title" style="margin-bottom:7px">Categoria</div>
+              <div style="background:#F5F5F5;border-radius:9px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;color:#BDBDBD">Seleziona una categoria</span><span style="font-size:11px;color:#BDBDBD">&#9660;</span></div>
+            </div>
+            <div class="iph-card">
+              <div class="iph-card-title" style="margin-bottom:7px">Posizione GPS</div>
+              <div style="background:#EBF3FF;border-radius:9px;padding:9px 11px;display:flex;align-items:center;gap:7px"><span style="font-size:14px">&#128205;</span><span style="font-size:9px;font-weight:700;color:#0D3B7A">Rileva posizione automaticamente</span></div>
+            </div>
+            <div class="iph-card" style="margin-bottom:13px">
+              <div class="iph-card-title" style="margin-bottom:7px">Descrizione</div>
+              <div style="background:#F5F5F5;border-radius:9px;padding:9px 11px;height:34px"><span style="font-size:8.5px;color:#BDBDBD">Descrivi il problema...</span></div>
+            </div>
+            <div style="background:linear-gradient(135deg,#0D3B7A,#1565C0);border-radius:13px;padding:13px;text-align:center;box-shadow:0 4px 16px rgba(13,59,122,.35)">
+              <span style="font-size:10.5px;font-weight:800;color:#fff">&#128228;&#160;Invia segnalazione</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: Home -->
+    <div class="iph iph--center">
+      <div class="iph-outer">
+        <div class="iph-mute"></div>
+        <div class="iph-screen">
+          <div class="iph-island"></div>
+          <div class="iph-sb"><span class="iph-sb-time">9:41</span><div class="iph-sb-icons"><span>&#9646;&#9646;&#9646;</span><span>WiFi</span><span>&#9646;&#9646;&#9646;</span></div></div>
+          <div class="iph-appbar">
+            <span class="iph-appbar-icon">&#9776;</span>
+            <div class="iph-appbar-title">Home</div>
+            <span style="font-size:15px;color:rgba(255,255,255,.8)">&#128276;</span>
+          </div>
+          <div class="iph-body">
+            <div style="background:rgba(13,59,122,.07);border:1px solid rgba(13,59,122,.13);border-radius:13px;padding:11px 13px;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+                <span style="font-size:14px">&#8505;&#65039;</span>
+                <span style="font-size:10.5px;font-weight:800;color:#0D3B7A">Raccolta Differenziata</span>
+              </div>
+              <div style="font-size:8.5px;color:#616161;line-height:1.5;margin-bottom:6px">Scopri come separare correttamente i rifiuti.</div>
+              <div style="font-size:9px;font-weight:700;color:#1565C0">&#128218;&#160;Guida raccolta differenziata</div>
+            </div>
+            <div style="background:linear-gradient(135deg,#0D3B7A,#1565C0);border-radius:15px;padding:14px 15px;margin-bottom:11px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 18px rgba(13,59,122,.3)">
+              <div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">&#128737;</div>
+              <div>
+                <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.3px">Comune di Roma</div>
+                <div style="display:inline-block;background:rgba(255,255,255,.2);border-radius:6px;padding:3px 9px;font-size:8.5px;color:rgba(255,255,255,.92);font-weight:700;margin-top:5px">Roma</div>
+              </div>
+            </div>
+            <div class="iph-section" style="margin-top:0">Raccolta Oggi</div>
+            <div style="display:flex;gap:8px;margin-bottom:11px">
+              <div style="flex:1;background:#fff;border-radius:13px;padding:11px 9px;box-shadow:0 1px 7px rgba(0,0,0,.08);display:flex;align-items:center;gap:8px">
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(255,152,0,.14);display:flex;align-items:center;justify-content:center;font-size:16px">&#129520;</div>
+                <span style="font-size:10px;font-weight:800;color:#E65100">Plastica</span>
+              </div>
+              <div style="flex:1;background:#fff;border-radius:13px;padding:11px 9px;box-shadow:0 1px 7px rgba(0,0,0,.08);display:flex;align-items:center;gap:8px">
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(97,97,97,.12);display:flex;align-items:center;justify-content:center;font-size:16px">&#128295;</div>
+                <span style="font-size:10px;font-weight:800;color:#424242">Metalli</span>
+              </div>
+            </div>
+            <div class="iph-section" style="margin-top:0">Raccolta Domani</div>
+            <div style="display:flex;gap:8px">
+              <div class="wchip wch-umido">&#127807;&#160;Umido</div>
+              <div class="wchip wch-carta">&#128196;&#160;Carta</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Calendario Raccolta -->
+    <div class="iph iph--right">
+      <div class="iph-outer">
+        <div class="iph-mute"></div>
+        <div class="iph-screen">
+          <div class="iph-island"></div>
+          <div class="iph-sb"><span class="iph-sb-time">9:41</span><div class="iph-sb-icons"><span>&#9646;&#9646;&#9646;</span><span>WiFi</span><span>&#9646;&#9646;&#9646;</span></div></div>
+          <div class="iph-appbar">
+            <span class="iph-appbar-icon">&#8592;</span>
+            <div class="iph-appbar-title">Calendario Raccolta</div>
+            <span class="iph-appbar-icon" style="opacity:0">&#8592;</span>
+          </div>
+          <div class="iph-body">
+            <div style="display:flex;align-items:center;gap:7px;background:rgba(13,59,122,.08);border:1px solid rgba(13,59,122,.15);border-radius:10px;padding:8px 12px;margin-bottom:11px">
+              <span style="font-size:12px">&#128205;</span>
+              <span style="font-size:9px;font-weight:700;color:#0D3B7A">Roma &mdash; Roma</span>
+            </div>
+            <div class="cal-row">
+              <span class="cal-dow">Luned&igrave;</span>
+              <div style="display:flex;gap:4px">
+                <span class="wchip wch-umido" style="padding:4px 7px;font-size:7.5px">&#127807; Umido</span>
+                <span class="wchip wch-vetro" style="padding:4px 7px;font-size:7.5px">&#127863; Vetro</span>
+              </div>
+            </div>
+            <div class="cal-row cal-row-today">
+              <div><span class="cal-dow cal-dow-today">Marted&igrave;</span><span class="today-badge">OGGI</span></div>
+              <div style="display:flex;gap:4px">
+                <span class="wchip wch-plastica" style="padding:4px 7px;font-size:7.5px">&#129520; Plastica</span>
+                <span class="wchip wch-metalli" style="padding:4px 7px;font-size:7.5px">&#128295; Metalli</span>
+              </div>
+            </div>
+            <div class="cal-row">
+              <span class="cal-dow">Mercoled&igrave;</span>
+              <div style="display:flex;gap:4px">
+                <span class="wchip wch-umido" style="padding:4px 7px;font-size:7.5px">&#127807; Umido</span>
+                <span class="wchip wch-carta" style="padding:4px 7px;font-size:7.5px">&#128196; Carta</span>
+              </div>
+            </div>
+            <div class="cal-row">
+              <span class="cal-dow">Gioved&igrave;</span>
+              <span class="wchip wch-secco" style="padding:4px 7px;font-size:7.5px">&#128465; Secco residuo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stats-bar-inner">
+    <div class="stat-item reveal"><span class="stat-num" data-target="3">0</span><span class="stat-label">Prodotti integrati</span></div>
+    <div class="stat-item reveal d1"><span class="stat-num" data-target="9">0</span><span class="stat-label">Moduli operativi</span></div>
+    <div class="stat-item reveal d2"><span class="stat-num" data-target="24" data-suffix="h">0h</span><span class="stat-label">Operatività continua</span></div>
+    <div class="stat-item reveal d3"><span class="stat-num" data-text="RT">RT</span><span class="stat-label">Sincronizzazione real-time</span></div>
+  </div>
+</div>
+
+<!-- Products -->
+<section class="products" id="prodotti">
+  <div class="section-header">
+    <div class="eyebrow eyebrow-blue reveal">Ecosistema completo</div>
+    <h2 class="section-title reveal d1">Tre prodotti,<br>un flusso continuo.</h2>
+    <p class="section-desc reveal d2">Dalla segnalazione del cittadino alla chiusura dell&rsquo;intervento: tutto connesso, tutto tracciato.</p>
+  </div>
+  <div class="products-grid">
+    <div class="product-card pc--app reveal">
+      <div class="pc-icon">&#128241;</div>
+      <span class="pc-tag">Cittadini</span>
+      <h3>App Mobile</h3>
+      <p>I cittadini segnalano accumuli, prenotano ritiri e restano informati con notifiche push in tempo reale.</p>
+      <ul class="pc-features">
+        <li><span class="pc-dot"></span>Segnalazioni con foto e geolocalizzazione</li>
+        <li><span class="pc-dot"></span>Prenotazione ritiro ingombranti</li>
+        <li><span class="pc-dot"></span>Calendario differenziata interattivo</li>
+        <li><span class="pc-dot"></span>Notifiche push mirate per zona</li>
+        <li><span class="pc-dot"></span>Stato richieste in tempo reale</li>
+      </ul>
+    </div>
+    <div class="product-card pc--comune reveal d1">
+      <div class="pc-icon">&#127963;&#65039;</div>
+      <span class="pc-tag">Operatori</span>
+      <h3>Portale Operativo</h3>
+      <p>La centrale di controllo comunale: gestisci segnalazioni, assegna interventi e monitora l&rsquo;intero servizio live.</p>
+      <ul class="pc-features">
+        <li><span class="pc-dot"></span>Coda segnalazioni e prenotazioni live</li>
+        <li><span class="pc-dot"></span>Assegnazione squadre e mezzi</li>
+        <li><span class="pc-dot"></span>Comunicazioni di zona mirate</li>
+        <li><span class="pc-dot"></span>Organizzazione giri di raccolta</li>
+        <li><span class="pc-dot"></span>Storico completo delle lavorazioni</li>
+      </ul>
+    </div>
+    <div class="product-card pc--admin reveal d2">
+      <div class="pc-icon">&#128272;</div>
+      <span class="pc-tag">Amministrazione</span>
+      <h3>Portale Admin</h3>
+      <p>Governance multi-comune, KPI di servizio e configurazione centralizzata per alzare gli standard operativi.</p>
+      <ul class="pc-features">
+        <li><span class="pc-dot"></span>Dashboard analytics avanzate</li>
+        <li><span class="pc-dot"></span>Gestione utenti, ruoli e permessi</li>
+        <li><span class="pc-dot"></span>Configurazione servizi per territorio</li>
+        <li><span class="pc-dot"></span>Report KPI su tempi e volumi</li>
+        <li><span class="pc-dot"></span>Multi-tenant isolato e sicuro</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Browser mockup 1: Dashboard portale -->
+<section class="browser-section" id="portale" style="background:var(--d2)">
+  <div class="browser-wrap">
+    <div class="split-text">
+      <div class="eyebrow eyebrow-cyan reveal">Portale Operativo</div>
+      <h2 class="reveal d1">La dashboard che<br>cambia il modo di<br>gestire la raccolta.</h2>
+      <p class="reveal d2">Gli operatori vedono ogni richiesta in arrivo, assegnano le priorità e chiudono gli interventi &mdash; tutto da un&rsquo;unica schermata web, senza app aggiuntive.</p>
+      <div class="split-chips reveal d3">
+        <span class="chip">Coda live</span>
+        <span class="chip">KPI real-time</span>
+        <span class="chip">Assegnazione squadre</span>
+        <span class="chip">Storico interventi</span>
+        <span class="chip">Filtri avanzati</span>
+      </div>
+    </div>
+    <div class="browser-frame-outer reveal d2">
+      <div class="float-badge float-badge--tl">
+        <span class="fb-icon">&#128994;</span>
+        <div class="fb-text"><div class="fb-t1">12 interventi chiusi</div><div class="fb-t2">Oggi &middot; in tempo</div></div>
+      </div>
+      <div class="browser-frame">
+        <div class="browser-chrome">
+          <div class="bc-dots"><span class="bc-dot bc-dot-r"></span><span class="bc-dot bc-dot-y"></span><span class="bc-dot bc-dot-g"></span></div>
+          <div class="bc-url"><span class="bc-url-lock">&#128274;</span>portale.civicos.it/dashboard</div>
+        </div>
+        <div class="browser-body">
+          <div class="dash-layout">
+            <div class="dash-sidebar">
+              <div class="dash-sidebar-logo"><div class="dash-logo-dot"></div>CivicOS</div>
+              <div class="dash-nav-item active"><span class="dash-nav-icon">&#128202;</span>Dashboard<span class="dash-nav-badge">3</span></div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128680;</span>Segnalazioni</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128230;</span>Prenotazioni</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128226;</span>Comunicazioni</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128667;</span>Mezzi</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128197;</span>Calendario</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128101;</span>Utenti</div>
+            </div>
+            <div class="dash-main">
+              <div class="dash-header"><span class="dash-title">Dashboard operativa</span><span class="dash-date">12 Mag 2026 &middot; Comune di Roma</span></div>
+              <div class="kpi-row">
+                <div class="kpi-card"><div class="kpi-val" style="color:#60AAFF">24</div><div class="kpi-lbl">Segnalazioni</div><div class="kpi-trend up">&#8593; +8 oggi</div></div>
+                <div class="kpi-card"><div class="kpi-val" style="color:#40D970">18</div><div class="kpi-lbl">Chiuse oggi</div><div class="kpi-trend up">&#8593; 75%</div></div>
+                <div class="kpi-card"><div class="kpi-val" style="color:#FFB84D">3</div><div class="kpi-lbl">In lavorazione</div><div class="kpi-trend dn">&#8595; -2</div></div>
+                <div class="kpi-card"><div class="kpi-val" style="color:#D890FF">2h</div><div class="kpi-lbl">Tempo medio</div><div class="kpi-trend up">&#8593; -30m</div></div>
+              </div>
+              <div class="chart-area">
+                <div class="chart-title">Segnalazioni settimana corrente</div>
+                <div class="chart-bars">
+                  <div class="chart-bar" data-val="14" style="height:55%;background:linear-gradient(to top,rgba(10,132,255,.3),rgba(10,132,255,.7))"></div>
+                  <div class="chart-bar" data-val="21" style="height:80%;background:linear-gradient(to top,rgba(10,132,255,.3),rgba(10,132,255,.7))"></div>
+                  <div class="chart-bar" data-val="18" style="height:68%;background:linear-gradient(to top,rgba(10,132,255,.3),rgba(10,132,255,.7))"></div>
+                  <div class="chart-bar" data-val="27" style="height:100%;background:linear-gradient(to top,rgba(10,132,255,.5),var(--blue))"></div>
+                  <div class="chart-bar" data-val="22" style="height:83%;background:linear-gradient(to top,rgba(10,132,255,.3),rgba(10,132,255,.7))"></div>
+                  <div class="chart-bar" data-val="9"  style="height:34%;background:linear-gradient(to top,rgba(10,132,255,.2),rgba(10,132,255,.5))"></div>
+                  <div class="chart-bar" data-val="24" style="height:90%;background:linear-gradient(to top,rgba(34,199,207,.4),var(--cyan))"></div>
+                </div>
+                <div class="chart-xaxis">
+                  <div class="chart-xlabel">Lun</div><div class="chart-xlabel">Mar</div><div class="chart-xlabel">Mer</div><div class="chart-xlabel">Gio</div><div class="chart-xlabel">Ven</div><div class="chart-xlabel">Sab</div><div class="chart-xlabel">Dom</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="float-badge float-badge--br">
+        <span class="fb-icon">&#9889;</span>
+        <div class="fb-text"><div class="fb-t1">Sincronizzazione live</div><div class="fb-t2">Firebase real-time</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Browser mockup 2: Gestione segnalazioni -->
+<section class="browser-section" id="segnalazioni" style="background:var(--d1)">
+  <div class="browser-wrap rev">
+    <div class="split-text">
+      <div class="eyebrow eyebrow-green reveal">Gestione segnalazioni</div>
+      <h2 class="reveal d1">Ogni intervento<br>tracciato, dalla<br>segnalazione alla chiusura.</h2>
+      <p class="reveal d2">Gli operatori ricevono le segnalazioni con foto e GPS, le assegnano alle squadre disponibili e chiudono il ticket con un click &mdash; il cittadino viene notificato automaticamente.</p>
+      <div class="split-chips reveal d3">
+        <span class="chip">Foto e GPS</span>
+        <span class="chip">Priorità automatica</span>
+        <span class="chip">Notifica cittadino</span>
+        <span class="chip">Storico completo</span>
+      </div>
+    </div>
+    <div class="browser-frame-outer reveal d2">
+      <div class="float-badge float-badge--tl" style="animation-delay:.5s">
+        <span class="fb-icon">&#128205;</span>
+        <div class="fb-text"><div class="fb-t1">Via Nazionale, 43</div><div class="fb-t2">Accumulo organico</div></div>
+      </div>
+      <div class="browser-frame">
+        <div class="browser-chrome">
+          <div class="bc-dots"><span class="bc-dot bc-dot-r"></span><span class="bc-dot bc-dot-y"></span><span class="bc-dot bc-dot-g"></span></div>
+          <div class="bc-url"><span class="bc-url-lock">&#128274;</span>portale.civicos.it/segnalazioni</div>
+        </div>
+        <div class="browser-body">
+          <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:13px;font-weight:800;color:var(--text)">Segnalazioni &middot; 24 totali</div>
+            <div style="display:flex;gap:8px">
+              <div style="background:rgba(10,132,255,.15);border:1px solid rgba(10,132,255,.25);border-radius:7px;padding:5px 12px;font-size:10px;font-weight:700;color:#70BBFF">Tutte</div>
+              <div style="background:rgba(255,69,58,.12);border:1px solid rgba(255,69,58,.2);border-radius:7px;padding:5px 12px;font-size:10px;font-weight:700;color:#FF6B6B">Urgenti (3)</div>
+            </div>
+          </div>
+          <div class="dash-table">
+            <div class="dash-table-head"><div>Segnalazione</div><div>Zona</div><div>Stato</div><div>Assegnata</div></div>
+            <div class="dash-table-row"><div style="display:flex;align-items:center;gap:7px"><div style="width:6px;height:6px;border-radius:50%;background:#FF453A;flex-shrink:0"></div>Accumulo Via Cavour</div><div>Centro</div><div><span style="background:rgba(255,69,58,.18);color:#FF6B6B;font-size:8.5px;font-weight:800;padding:3px 9px;border-radius:980px">Urgente</span></div><div>Squadra A</div></div>
+            <div class="dash-table-row" style="background:rgba(10,132,255,.04)"><div style="display:flex;align-items:center;gap:7px"><div style="width:6px;height:6px;border-radius:50%;background:#0A84FF;flex-shrink:0"></div>Rifiuti ingombranti</div><div>Prati</div><div><span style="background:rgba(10,132,255,.18);color:#60AAFF;font-size:8.5px;font-weight:800;padding:3px 9px;border-radius:980px">In corso</span></div><div>Squadra B</div></div>
+            <div class="dash-table-row"><div style="display:flex;align-items:center;gap:7px"><div style="width:6px;height:6px;border-radius:50%;background:#30D158;flex-shrink:0"></div>Cestino pieno</div><div>Trastevere</div><div><span style="background:rgba(48,209,88,.18);color:#40D970;font-size:8.5px;font-weight:800;padding:3px 9px;border-radius:980px">Chiusa</span></div><div>Squadra A</div></div>
+            <div class="dash-table-row"><div style="display:flex;align-items:center;gap:7px"><div style="width:6px;height:6px;border-radius:50%;background:#FF9F0A;flex-shrink:0"></div>Raccolta non effettuata</div><div>Ostiense</div><div><span style="background:rgba(255,159,10,.18);color:#FFB84D;font-size:8.5px;font-weight:800;padding:3px 9px;border-radius:980px">In attesa</span></div><div>&mdash;</div></div>
+            <div class="dash-table-row"><div style="display:flex;align-items:center;gap:7px"><div style="width:6px;height:6px;border-radius:50%;background:#30D158;flex-shrink:0"></div>Mastello danneggiato</div><div>EUR</div><div><span style="background:rgba(48,209,88,.18);color:#40D970;font-size:8.5px;font-weight:800;padding:3px 9px;border-radius:980px">Chiusa</span></div><div>Squadra C</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="float-badge float-badge--br" style="animation-delay:1s">
+        <span class="fb-icon">&#9989;</span>
+        <div class="fb-text"><div class="fb-t1">Intervento chiuso</div><div class="fb-t2">Cittadino notificato</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how" id="come-funziona">
+
+<!-- MOCKUP OPERATORI RACCOLTA -->
+<section class="browser-section" id="operatori-raccolta" style="background:var(--d1)">
+  <div class="browser-wrap">
+    <div class="split-text">
+      <div class="eyebrow eyebrow-green reveal">Operatori raccolta</div>
+      <h2 class="reveal d1">Il giro giornaliero,<br>RFID e tracking live.</h2>
+      <p class="reveal d2">Gli operatori visualizzano il giro assegnato, leggono i secchi tramite RFID, registrano indirizzo e orario, segnalano anomalie e tutto viene tracciato su mappa in tempo reale.</p>
+      <div class="split-chips reveal d3">
+        <span class="chip">Giro assegnato</span>
+        <span class="chip">Lettura RFID</span>
+        <span class="chip">Tracking mappa</span>
+        <span class="chip">Segnalazione rapida</span>
+      </div>
+    </div>
+    <div class="browser-frame-outer reveal d2">
+      <div class="float-badge float-badge--tl">
+        <span class="fb-icon">&#128421;</span>
+        <div class="fb-text"><div class="fb-t1">RFID attivo</div><div class="fb-t2">Secchio letto: #A1F3</div></div>
+      </div>
+      <div class="browser-frame">
+        <div class="browser-chrome">
+          <div class="bc-dots"><span class="bc-dot bc-dot-r"></span><span class="bc-dot bc-dot-y"></span><span class="bc-dot bc-dot-g"></span></div>
+          <div class="bc-url"><span class="bc-url-lock">&#128274;</span>portale.civicos.it/operatori</div>
+        </div>
+        <div class="browser-body">
+          <div class="dash-layout">
+            <div class="dash-sidebar">
+              <div class="dash-sidebar-logo"><div class="dash-logo-dot"></div>CivicOS</div>
+              <div class="dash-nav-item active"><span class="dash-nav-icon">&#128230;</span>Giro Giornaliero</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128421;</span>RFID</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#128205;</span>Mappa</div>
+              <div class="dash-nav-item"><span class="dash-nav-icon">&#9888;</span>Segnalazioni</div>
+            </div>
+            <div class="dash-main">
+              <div class="dash-header"><span class="dash-title">Giro di oggi</span><span class="dash-date">30 Mag 2026 &middot; Operatore Rossi</span></div>
+              <div style="margin-bottom:10px">
+                <div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:3px">Tappe assegnate</div>
+                <ul style="list-style:none;padding:0;margin:0;display:flex;gap:7px;flex-wrap:wrap">
+                  <li style="background:rgba(10,132,255,.09);border-radius:7px;padding:6px 13px;font-size:10px;font-weight:700;color:#0A84FF">Via Cavour, 12</li>
+                  <li style="background:rgba(48,209,88,.09);border-radius:7px;padding:6px 13px;font-size:10px;font-weight:700;color:#30D158">Via Nazionale, 43</li>
+                  <li style="background:rgba(255,159,10,.09);border-radius:7px;padding:6px 13px;font-size:10px;font-weight:700;color:#FF9F0A">Piazza Venezia, 2</li>
+                </ul>
+              </div>
+              <div style="display:flex;gap:12px;margin-bottom:10px">
+                <div style="flex:1;background:#fff;border-radius:10px;padding:13px 10px;box-shadow:0 1px 7px rgba(0,0,0,.07)">
+                  <div style="font-size:9px;font-weight:700;color:#616161;margin-bottom:3px">Ultima raccolta</div>
+                  <div style="font-size:12px;font-weight:800;color:#0D3B7A">#A1F3</div>
+                  <div style="font-size:8.5px;color:#4B5678">Via Nazionale, 43<br>09:18</div>
+                </div>
+                <div style="flex:1;background:#fff;border-radius:10px;padding:13px 10px;box-shadow:0 1px 7px rgba(0,0,0,.07)">
+                  <div style="font-size:9px;font-weight:700;color:#616161;margin-bottom:3px">Secchi raccolti</div>
+                  <div style="font-size:12px;font-weight:800;color:#30D158">7 / 12</div>
+                  <div style="font-size:8.5px;color:#4B5678">58%</div>
+                </div>
+                <div style="flex:1;background:#fff;border-radius:10px;padding:13px 10px;box-shadow:0 1px 7px rgba(0,0,0,.07)">
+                  <div style="font-size:9px;font-weight:700;color:#616161;margin-bottom:3px">Segnalazioni</div>
+                  <div style="font-size:12px;font-weight:800;color:#FF9F0A">1</div>
+                  <div style="font-size:8.5px;color:#4B5678">Abbandono rifiuti</div>
+                </div>
+              </div>
+              <div class="chart-area" style="min-height:90px">
+                <div class="chart-title">Tracking raccolta su mappa</div>
+                <div style="width:100%;height:60px;background:linear-gradient(90deg,#0A84FF22,#30D15822,#FF9F0A22);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#0D3B7A;font-size:11px;font-weight:700">[Mappa interattiva RFID]</div>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:10px">
+                <button style="background:linear-gradient(135deg,#0D3B7A,#1565C0);color:#fff;border:none;border-radius:980px;padding:10px 28px;font-size:12px;font-weight:800;box-shadow:0 2px 12px rgba(10,132,255,.18);cursor:pointer">Leggi RFID</button>
+                <button style="background:linear-gradient(135deg,#FF9F0A,#FF453A);color:#fff;border:none;border-radius:980px;padding:10px 28px;font-size:12px;font-weight:800;box-shadow:0 2px 12px rgba(255,159,10,.18);cursor:pointer">Segnala anomalia</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="float-badge float-badge--br">
+        <span class="fb-icon">&#128205;</span>
+        <div class="fb-text"><div class="fb-t1">Tracking live</div><div class="fb-t2">Mappa aggiornata</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+  <div style="max-width:1100px;margin:0 auto">
+    <div class="section-header">
+      <div class="eyebrow eyebrow-cyan reveal">Flusso operativo</div>
+      <h2 class="section-title reveal d1">Come funziona<br>in 4 passi.</h2>
+      <p class="section-desc reveal d2">Dal momento in cui il cittadino segnala un problema all&rsquo;intervento chiuso: un processo digitale, tracciato e misurabile.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card step-1 reveal"><div class="step-num">01</div><span class="step-icon">&#128241;</span><h4>Il cittadino segnala</h4><p>Tramite l&rsquo;app invia una segnalazione con foto, posizione GPS e categoria del rifiuto in pochi secondi.</p></div>
+      <div class="step-card step-2 reveal d1"><div class="step-num">02</div><span class="step-icon">&#128276;</span><h4>Il comune riceve</h4><p>La segnalazione arriva in tempo reale nel portale operativo con priorità automatica e zona di competenza.</p></div>
+      <div class="step-card step-3 reveal d2"><div class="step-num">03</div><span class="step-icon">&#128667;</span><h4>L&rsquo;operatore interviene</h4><p>La squadra viene assegnata con un click, riceve le istruzioni e aggiorna lo stato dell&rsquo;intervento live.</p></div>
+      <div class="step-card step-4 reveal d3"><div class="step-num">04</div><span class="step-icon">&#9989;</span><h4>Intervento chiuso</h4><p>Il cittadino riceve una notifica push di conferma. Il dato viene archiviato per le analisi KPI del comune.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Modules -->
+<section class="modules" id="moduli">
+  <div style="max-width:1100px;margin:0 auto">
+    <div class="section-header">
+      <div class="eyebrow eyebrow-orange reveal">Operatività quotidiana</div>
+      <h2 class="section-title reveal d1">Tutti i moduli<br>per il servizio di raccolta.</h2>
+      <p class="section-desc reveal d2">Ogni funzione risolve un passaggio concreto: dalla segnalazione alla chiusura intervento, senza perdere nulla.</p>
+    </div>
+    <div class="modules-grid">
+      <div class="mod-card reveal" style="--ma:var(--blue)"><span class="mod-icon">&#128680;</span><h4>Segnalazioni accumuli</h4><p>Foto, GPS e categoria del rifiuto per identificare subito i punti critici e intervenire prima che il problema cresca.</p></div>
+      <div class="mod-card reveal d1" style="--ma:var(--cyan)"><span class="mod-icon">&#128230;</span><h4>Ritiro ingombranti</h4><p>Prenotazione digitale con slot orario, stato avanzamento e conferma automatica per eliminare gli abbandoni su strada.</p></div>
+      <div class="mod-card reveal d2" style="--ma:var(--green)"><span class="mod-icon">&#128226;</span><h4>Comunicazioni di servizio</h4><p>Avvisi push su variazioni raccolta, sospensioni e recuperi inviati in real-time ai cittadini della zona coinvolta.</p></div>
+      <div class="mod-card reveal d3" style="--ma:var(--orange)"><span class="mod-icon">&#128667;</span><h4>Mezzi e squadre</h4><p>Coordinamento veicoli e squadre con visibilità centralizzata delle attività giornaliere e assegnazioni rapide.</p></div>
+      <div class="mod-card reveal d1" style="--ma:var(--blue)"><span class="mod-icon">&#128167;</span><h4>Cisterne</h4><p>Gestione emergenze idriche e servizi ambientali correlati per un quadro completo dei servizi comunali.</p></div>
+      <div class="mod-card reveal d2" style="--ma:var(--purple)"><span class="mod-icon">&#128197;</span><h4>Calendario differenziata</h4><p>Calendario aggiornabile dal comune con regole di conferimento chiare, accessibili sempre dai cittadini.</p></div>
+      <div class="mod-card reveal d3" style="--ma:var(--cyan)"><span class="mod-icon">&#9200;</span><h4>Scadenze operative</h4><p>Scadenziario per attività ricorrenti: nessun ritardo nella pianificazione del servizio di raccolta.</p></div>
+      <div class="mod-card reveal d1" style="--ma:var(--green)"><span class="mod-icon">&#127970;</span><h4>Aziende partner</h4><p>Gestione anagrafiche e referenti delle aziende coinvolte nel servizio, con flussi chiari e tracciati.</p></div>
+      <div class="mod-card reveal d2" style="--ma:var(--orange)"><span class="mod-icon">&#128101;</span><h4>Utenti &amp; Permessi</h4><p>Ruoli granulari per ogni operatore, accessi sicuri e responsabilità definite lungo tutto il processo.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Contatti / Form -->
+<section class="cta-section" id="contatti">
+  <div class="cta-split">
+
+    <!-- Left: testo -->
+    <div class="cta-left">
+      <div class="eyebrow eyebrow-blue reveal">Inizia ora</div>
+      <h2 class="reveal d1">Porta il tuo comune<br><span>nel digitale.</span></h2>
+      <p class="reveal d2">Compila il form e ti ricontattiamo entro 24 ore per una demo gratuita personalizzata sul tuo territorio.</p>
+      <div class="cta-trust reveal d3">
+        <div class="trust-item"><span class="trust-icon">&#9989;</span>Nessun impegno, demo gratuita</div>
+        <div class="trust-item"><span class="trust-icon">&#128274;</span>Dati trattati in conformità GDPR</div>
+        <div class="trust-item"><span class="trust-icon">&#9889;</span>Risposta entro 24 ore lavorative</div>
+      </div>
+    </div>
+
+    <!-- Right: form -->
+    <div class="contact-card reveal d2">
+      <h3>Richiedi una demo</h3>
+      <p class="form-sub">Parliamo di come CivicOS può migliorare il tuo servizio di raccolta.</p>
+
+      <form id="contactForm" novalidate>
+        <!-- Honeypot anti-spam -->
+        <input class="form-honeypot" type="text" name="_hp" tabindex="-1" autocomplete="off" />
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="cf-nome">Nome e cognome *</label>
+            <input type="text" id="cf-nome" name="nome" placeholder="Mario Rossi" maxlength="100" autocomplete="name" />
+          </div>
+          <div class="form-field">
+            <label for="cf-email">Email *</label>
+            <input type="email" id="cf-email" name="email" placeholder="mario@comune.it" maxlength="150" autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="cf-comune">Comune / Organizzazione</label>
+          <input type="text" id="cf-comune" name="comune" placeholder="Es. Comune di Roma" maxlength="120" />
+        </div>
+
+        <div class="form-field">
+          <label for="cf-msg">Messaggio *</label>
+          <textarea id="cf-msg" name="messaggio" rows="4" placeholder="Dimmi qualcosa sul tuo comune e cosa vorresti migliorare..." maxlength="2000"></textarea>
+        </div>
+
+        <p style="font-size:11.5px;color:var(--text3);margin-bottom:14px">Inviando accetti la nostra <a href="privacy.html" style="color:var(--blue);font-weight:600">Privacy Policy</a>.</p>
+
+        <button type="submit" class="btn-submit" id="contactSubmit">
+          <span id="submitLabel">Invia richiesta</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <div class="form-feedback" id="formSuccess" role="status" aria-live="polite">&#10003;&nbsp; Messaggio inviato! Ti risponderemo entro 24 ore lavorative.</div>
+        <div class="form-feedback error" id="formError" role="alert">&#9888;&nbsp; Qualcosa è andato storto. Riprova o scrivici a <a href="mailto:info@civicos.it" style="color:inherit">info@civicos.it</a>.</div>
+      </form>
+    </div>
+
+
+  </div>
+</section>
+</main>
+
+<!-- Tech -->
+<div class="tech" id="tech">
+  <div class="tech-inner">
+    <p class="tech-label reveal">Infrastruttura enterprise per servizi ambientali comunali</p>
+    <div class="tech-pills">
+      <div class="tech-pill reveal d1"><span class="tp-icon">&#128038;</span> Flutter</div>
+      <div class="tech-pill reveal d2"><span class="tp-icon">&#128293;</span> Firebase</div>
+      <div class="tech-pill reveal d1"><span class="tp-icon">&#9729;&#65039;</span> Cloud Firestore</div>
+      <div class="tech-pill reveal d3"><span class="tp-icon">&#128274;</span> Firebase Auth</div>
+      <div class="tech-pill reveal d2"><span class="tp-icon">&#128242;</span> FCM Push</div>
+      <div class="tech-pill reveal d1"><span class="tp-icon">&#127822;</span> iOS &amp; Android</div>
+      <div class="tech-pill reveal d3"><span class="tp-icon">&#127760;</span> Progressive Web App</div>
+      <div class="tech-pill reveal d2"><span class="tp-icon">&#128276;</span> Real-time Sync</div>
+      <div class="tech-pill reveal d1"><span class="tp-icon">&#9889;</span> Cloud Functions</div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer role="contentinfo" aria-label="Informazioni sul sito">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="assets/CivicOS.png" alt="Logo CivicOS, piattaforma digitale per i comuni italiani" />
+        <p>Piattaforma digitale per rendere la raccolta differenziata più efficiente: semplice per i cittadini, operativa per il comune, misurabile per l&rsquo;amministrazione.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h5>Prodotti</h5>
+          <ul><li><a href="#prodotti">App Mobile</a></li><li><a href="#portale">Portale Operativo</a></li><li><a href="#prodotti">Portale Admin</a></li></ul>
+        </div>
+        <div class="footer-col">
+          <h5>Funzionalità</h5>
+          <ul><li><a href="#moduli">Segnalazioni</a></li><li><a href="#moduli">Prenotazioni</a></li><li><a href="#moduli">Comunicazioni</a></li><li><a href="#moduli">Analytics</a></li></ul>
+        </div>
+        <div class="footer-col">
+          <h5>Azienda</h5>
+          <ul><li><a href="#come-funziona">Come funziona</a></li><li><a href="mailto:info@civicos.it">Contatti</a></li><li><a href="privacy.html">Privacy Policy</a></li><li><a href="termini.html">Termini di servizio</a></li></ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 CivicOS &mdash; civicos.it &middot; Tutti i diritti riservati.</span>
+      <span>Fatto con <span class="footer-heart">&#9829;</span> per i comuni italiani</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+/* Particle canvas */
+(function(){
+  const canvas=document.getElementById('particleCanvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[],animId;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.8+.3,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,alpha:Math.random()*.3+.07,color:['rgba(10,132,255,','rgba(0,136,193,','rgba(13,59,122,'][Math.floor(Math.random()*3)]}}
+  function init(){resize();particles=[];for(let i=0;i<90;i++)particles.push(mkP())}
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.color+p.alpha+')';ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+    });
+    for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<110){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle='rgba(10,59,122,'+(0.07*(1-d/110))+')';ctx.lineWidth=.7;ctx.stroke()}
+    }
+    animId=requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',()=>{cancelAnimationFrame(animId);init();draw()});
+  init();draw();
+})();
+
+/* Nav */
+const navbar=document.getElementById('navbar');
+window.addEventListener('scroll',()=>navbar.classList.toggle('scrolled',window.scrollY>24),{passive:true});
+
+/* Reveal */
+const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');ro.unobserve(e.target)}}),{threshold:.1,rootMargin:'0px 0px -44px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+/* Counter */
+const co=new IntersectionObserver(entries=>entries.forEach(e=>{
+  if(!e.isIntersecting)return;const el=e.target;
+  if(el.dataset.text)return;const target=parseInt(el.dataset.target,10);const suffix=el.dataset.suffix||'';
+  if(isNaN(target))return;co.unobserve(el);
+  const dur=1600,start=performance.now();
+  (function tick(now){const p=Math.min((now-start)/dur,1);const ease=1-Math.pow(1-p,3);el.textContent=Math.round(target*ease)+suffix;if(p<1)requestAnimationFrame(tick)})(start);
+}),{threshold:.5});
+document.querySelectorAll('.stat-num[data-target]').forEach(el=>co.observe(el));
+
+/* Orb parallax */
+document.addEventListener('mousemove',e=>{
+  const x=(e.clientX/window.innerWidth-.5)*2,y=(e.clientY/window.innerHeight-.5)*2;
+  const o1=document.querySelector('.orb-1'),o2=document.querySelector('.orb-2'),o3=document.querySelector('.orb-3');
+  if(o1)o1.style.transform=`translate(${x*28}px,${y*28}px)`;
+  if(o2)o2.style.transform=`translate(${-x*20}px,${-y*20}px)`;
+  if(o3)o3.style.transform=`translate(${x*14}px,${y*14}px)`;
+},{passive:true});
+
+/* Phone 3D tilt */
+document.querySelectorAll('.iph').forEach(phone=>{
+  phone.addEventListener('mousemove',e=>{
+    const rect=phone.getBoundingClientRect();
+    const x=((e.clientX-rect.left)/rect.width-.5)*18;
+    const y=((e.clientY-rect.top)/rect.height-.5)*18;
+    const isC=phone.classList.contains('iph--center');
+    const isL=phone.classList.contains('iph--left');
+    phone.style.transform=isC?`translateY(-30px) rotateY(${x*.6}deg) rotateX(${-y*.5}deg)`:isL?`translateX(24px) rotateY(${14+x*.4}deg) rotateX(${-y*.3}deg) scale(0.87)`:`translateX(-24px) rotateY(${-14+x*.4}deg) rotateX(${-y*.3}deg) scale(0.87)`;
+    phone.style.transition='transform .1s';
+  });
+  phone.addEventListener('mouseleave',()=>{
+    const isC=phone.classList.contains('iph--center');
+    const isL=phone.classList.contains('iph--left');
+    phone.style.transform=isC?'translateY(-30px)':isL?'translateX(24px) rotateY(18deg) scale(0.87)':'translateX(-24px) rotateY(-18deg) scale(0.87)';
+    phone.style.transition='transform .55s cubic-bezier(.34,1.2,.64,1)';
+  });
+});
+
+/* Contact form */
+(function(){
+
+  let FIREBASE_CONFIG = null;
+
+  let db = null;
+
+  async function getDb() {
+    if (db) return db;
+    if (!FIREBASE_CONFIG) {
+      // Carica la configurazione da endpoint sicuro
+      try {
+        const res = await fetch('/firebase-config.json');
+        FIREBASE_CONFIG = await res.json();
+      } catch (e) {
+        alert('Configurazione Firebase non disponibile.');
+        throw e;
+      }
+    }
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    return db;
+  }
+
+  function validate(nome, email, messaggio) {
+    const errors = [];
+    if (!nome.trim()) errors.push('nome');
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.push('email');
+    if (!messaggio.trim()) errors.push('messaggio');
+    return errors;
+  }
+
+  document.getElementById('contactForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const nome      = document.getElementById('cf-nome').value;
+    const email     = document.getElementById('cf-email').value;
+    const comune    = document.getElementById('cf-comune').value;
+    const messaggio = document.getElementById('cf-msg').value;
+    const honeypot  = this.querySelector('[name="_hp"]').value;
+    const btn       = document.getElementById('contactSubmit');
+    const labelEl   = document.getElementById('submitLabel');
+    const okEl      = document.getElementById('formSuccess');
+    const errEl     = document.getElementById('formError');
+
+    // Reset feedback
+    okEl.style.display = 'none';
+    errEl.style.display = 'none';
+    [document.getElementById('cf-nome'),
+     document.getElementById('cf-email'),
+     document.getElementById('cf-msg')].forEach(el => el.classList.remove('error'));
+
+    // Honeypot check
+    if (honeypot) return;
+
+    // Validation
+    const errors = validate(nome, email, messaggio);
+    if (errors.length) {
+      errors.forEach(id => {
+        const el = id === 'messaggio'
+          ? document.getElementById('cf-msg')
+          : document.getElementById('cf-' + id);
+        if (el) el.classList.add('error');
+      });
+      return;
+    }
+
+    // Loading state
+    btn.disabled = true;
+    labelEl.textContent = 'Invio in corso...';
+    const spinner = document.createElement('span');
+    spinner.className = 'spinner';
+    btn.appendChild(spinner);
+
+    try {
+      const database = await getDb();
+      await database.collection('contatti').add({
+        nome:      nome.trim().substring(0, 100),
+        email:     email.trim().substring(0, 150),
+        comune:    comune.trim().substring(0, 120),
+        messaggio: messaggio.trim().substring(0, 2000),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        letto:     false,
+        fonte:     'landing'
+      });
+      this.reset();
+      okEl.style.display = 'block';
+      okEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (err) {
+      console.error('contactForm error:', err);
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      labelEl.textContent = 'Invia richiesta';
+      spinner.remove();
+    }
+  });
+})();
+
+/* Product card 3D tilt */
+document.querySelectorAll('.product-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const rect=card.getBoundingClientRect();
+    const x=((e.clientX-rect.left)/rect.width-.5)*2;
+    const y=((e.clientY-rect.top)/rect.height-.5)*2;
+    card.style.transform=`translateY(-10px) rotateX(${-y*5}deg) rotateY(${x*7}deg)`;
+    card.style.transition='transform .1s';
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.transform='';
+    card.style.transition='transform .5s cubic-bezier(.34,1.2,.64,1),border-color .3s,box-shadow .4s';
+  });
+});
+
+/* Cookie banner */
+(function(){
+  if(localStorage.getItem('cookie_consent'))return;
+  const banner=document.getElementById('cookie-banner');
+  setTimeout(()=>banner.classList.add('visible'),900);
+  function dismiss(){banner.classList.remove('visible');setTimeout(()=>banner.style.display='none',500);}
+  document.getElementById('cookie-accept').addEventListener('click',function(){localStorage.setItem('cookie_consent','accepted');dismiss();});
+  document.getElementById('cookie-close').addEventListener('click',function(){localStorage.setItem('cookie_consent','minimal');dismiss();});
+})();
+
+/* Data dinamica nel mockup dashboard */
+(function(){
+  const el=document.querySelector('.dash-date');
+  if(!el)return;
+  const now=new Date();
+  const m=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  el.textContent=now.getDate()+' '+m[now.getMonth()]+' '+now.getFullYear()+' \u00b7 Comune di Roma';
+})();
+</script>
+</body>
+</html>

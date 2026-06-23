@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Servizi — CivicOS (Bozza)</title>
+  <meta name="description" content="Bozza locale: panoramica dei servizi CivicOS — segnalazioni, prenotazioni, mezzi.">
+  <meta property="og:title" content="Servizi — CivicOS">
+  <meta property="og:description" content="Bozza locale della pagina servizi per testing e revisione.">
+  <style>
+    :root{--bg:#f8fafc;--card:#fff;--accent:#0a84ff;--muted:#667085}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;color:#0f1724;background:var(--bg)}
+    header{background:linear-gradient(90deg,#e6fff2,#cfefff); padding:18px 0;color:#022}
+    nav a{color:var(--accent); margin-right:16px; text-decoration:none;font-weight:600}
+    .container{max-width:1000px;margin:28px auto;padding:0 20px}
+    .card{background:var(--card);box-shadow:0 1px 2px rgba(16,24,40,0.04);border-radius:10px;padding:18px;margin-bottom:16px}
+    h1,h2,h3{color:#06203a;margin:0 0 8px}
+    p{color:var(--muted);line-height:1.5}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .kpi{display:flex;flex-direction:column}
+    .kpi .num{font-size:20px;font-weight:700;color:#0b57a6}
+    footer{color:#9aa6b2;text-align:center;padding:26px 0;font-size:13px}
+    .cta{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+    a.button{display:inline-block;background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none}
+    @media (prefers-color-scheme:dark){:root{--bg:#061026;--card:#071226;--accent:#59a6ff;--muted:#9fb0c8}body{color:#e6eef8}}
+  </style>
+  <script>
+    function openLocal(path){
+      // utile in locale: prova a navigare a file relativo
+      location.href = path;
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <div style="max-width:900px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between">
+      <h1 style="margin:0;font-size:18px">CivicOS — Bozza landing</h1>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="#servizi">Servizi</a>
+        <a href="#prenotazioni">Prenotazioni</a>
+        <a href="#segnalazioni">Segnalazioni</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card" id="intro">
+      <h2>Pagina di prova locale</h2>
+      <p>Questa è una bozza HTML pensata per essere aperta direttamente in locale dal filesystem per revisione rapida. Le sezioni sottostanti sono definite come pagine a sé stanti per facilitare SEO e condivisione.</p>
+      <div style="margin-top:12px">
+        <a class="button" href="prenotazioni.html">Vai a Prenotazioni</a>
+        <a class="button" href="segnalazioni.html" style="margin-left:8px;background:#06b6a4">Vai a Segnalazioni</a>
+      </div>
+    </section>
+
+    <section class="card" id="servizi">
+      <h3>Servizi</h3>
+      <p>Panoramica dei servizi principali offerti dalla piattaforma.</p>
+      <div class="grid" style="margin-top:12px">
+        <div class="card">
+          <h4>Segnalazioni</h4>
+          <p>Invio di segnalazioni con foto e posizione, workflow di presa in carico e tracking per il cittadino.</p>
+        </div>
+        <div class="card">
+          <h4>Prenotazioni</h4>
+          <p>Prenotazione di appuntamenti, sale comunali e servizi con calendario e promemoria.</p>
+        </div>
+        <div class="card">
+          <h4>Mezzi &amp; Cisterne</h4>
+          <p>Gestione inventario, disponibilità e turni per mezzi e cisterne comunali.</p>
+        </div>
+        <div class="card">
+          <h4>Comunicazioni</h4>
+          <p>Invio di notifiche, alert e avvisi organizzati per target e canale.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="prenotazioni">
+      <h3>Prenotazioni</h3>
+      <p>Esempio di CTA che apre una pagina locale (se esiste):</p>
+      <button onclick="openLocal('prenotazioni.html')">Apri prenotazioni (locale)</button>
+    </section>
+
+    <section class="card" id="segnalazioni">
+      <h3>Segnalazioni</h3>
+      <p>Bozza di testo e campi esemplificativi (solo demo).</p>
+      <form onsubmit="alert('Demo inviato (locale)');return false">
+        <label>Oggetto<br><input required style="width:100%"/></label><br><br>
+        <label>Descrizione<br><textarea required style="width:100%" rows="4"></textarea></label><br><br>
+        <button type="submit">Invia (demo)</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h3>Note per il team</h3>
+      <ul>
+        <li>Se decidiamo pagine separate, replicare questo template e aggiornare metadati.</li>
+        <li>Aggiungere JSON-LD e tag `og:` prima della pubblicazione.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    Bozza locale — non distribuire in produzione. File: landing/bozza_pagina.html
+  </footer>
+</body>
+</html>

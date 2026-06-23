@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html" class="active">Dashboard</a>
+  <a href="segnalazioni.html">Segnalazioni</a>
+  <a href="prenotazioni.html">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="comunicazioni.html">Comunicazioni</a>
+  <a href="aziende.html">Aziende e Società</a>
+  <a href="mezzi.html">Mezzi e Dipendenti</a>
+  <a href="scadenze.html">Scadenze</a>
+  <a href="utenti.html">Utenti</a>
+  <a href="#" class="logout-link" onclick="civicosLogout()">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <h1 class="main-title">Dashboard Operatori</h1>
+
+  <div class="stats">
+    <div class="card card--highlight">
+      <h3>👥 Popolazione</h3>
+      <p id="statPopolazione">—</p>
+    </div>
+    <div class="card">
+      <h3>Segnalazioni</h3>
+      <p id="statSegnalazioni">0</p>
+    </div>
+    <div class="card">
+      <h3>In lavorazione</h3>
+      <p id="statLavorazione">0</p>
+    </div>
+    <div class="card">
+      <h3>Risolte</h3>
+      <p id="statRisolte">0</p>
+    </div>
+    <div class="card">
+      <h3>Prenotazioni</h3>
+      <p id="statPrenotazioni">0</p>
+    </div>
+    <div class="card">
+      <h3>Rifornimento Acqua</h3>
+      <p id="statCisterne">0</p>
+    </div>
+    <div class="card">
+      <h3>Aziende</h3>
+      <p id="statAziende">0</p>
+    </div>
+    <div class="card">
+      <h3>Mezzi comunali</h3>
+      <p id="statMezzi">0</p>
+    </div>
+    <div class="card">
+      <h3>Scadenze prossime</h3>
+      <p id="statScadenze" style="color:#E65100;">0</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="map-box">
+      <h3>Mappa Segnalazioni</h3>
+      <div id="map"></div>
+    </div>
+    <div class="chart-box">
+      <h3>Attività settimanale</h3>
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-box">
+    <h3>Ultime segnalazioni</h3>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Tipo</th>
+        <th>Zona</th>
+        <th>Stato</th>
+      </tr>
+      <tbody id="recentTableBody">
+        <tr><td colspan="4" style="text-align:center;color:#999;padding:20px;">Nessuna segnalazione</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="civicos-firestore.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script src="portale-auth.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

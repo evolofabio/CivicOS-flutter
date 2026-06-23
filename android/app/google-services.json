@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "41965079417",
+    "firebase_url": "https://civicos-bb9f7-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "civicos-bb9f7",
+    "storage_bucket": "civicos-bb9f7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:41965079417:android:122dc3fa548a5860d33da8",
+        "android_client_info": {
+          "package_name": "com.example.civic_os"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqwQ7yazlqXwP5PTvYyDXZhIK4skiwSiw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

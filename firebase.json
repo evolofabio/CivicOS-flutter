@@ -1,0 +1,78 @@
+{
+  "functions": {
+    "source": "functions"
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": [
+    {
+      "target": "app",
+      "public": "build/web",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        { "source": "**", "destination": "/index.html" }
+      ],
+      "headers": [
+        {
+          "source": "**/*.@(js|wasm)",
+          "headers": [{ "key": "Cache-Control", "value": "max-age=31536000" }]
+        }
+      ]
+    },
+    {
+      "target": "portale",
+      "public": "portale-comune",
+      "ignore": ["firebase.json", "**/.*", "README.md"]
+    },
+    {
+      "target": "admin",
+      "public": "portale-admin",
+      "ignore": ["firebase.json", "**/.*", "README.md"]
+    },
+    {
+      "target": "landing",
+      "public": "landing",
+      "ignore": ["firebase.json", "**/.*"]
+    }
+  ],
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "civicos-bb9f7",
+          "appId": "1:41965079417:android:122dc3fa548a5860d33da8",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "civicos-bb9f7",
+          "appId": "1:41965079417:ios:eccc0bcfae07f1ccd33da8",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "civicos-bb9f7",
+          "appId": "1:41965079417:ios:eccc0bcfae07f1ccd33da8",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "civicos-bb9f7",
+          "configurations": {
+            "android": "1:41965079417:android:122dc3fa548a5860d33da8",
+            "ios": "1:41965079417:ios:eccc0bcfae07f1ccd33da8",
+            "macos": "1:41965079417:ios:eccc0bcfae07f1ccd33da8",
+            "web": "1:41965079417:web:88dc757cb4033e59d33da8",
+            "windows": "1:41965079417:web:bc81447aaf2a7834d33da8"
+          }
+        }
+      }
+    }
+  }
+}

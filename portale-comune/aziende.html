@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Aziende e Società</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div style="text-align:center;padding:0 16px;margin-bottom:8px"><img src="logo.png" alt="CivicOS" style="max-width:140px;height:auto"></div>
+  <div id="comuneHeader" class="comune-header"></div>
+  <a href="index.html">Dashboard</a>
+  <a href="segnalazioni.html">Segnalazioni</a>
+  <a href="prenotazioni.html">Prenotazioni</a>
+  <a href="cisterne.html">Rifornimento Acqua</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="comunicazioni.html">Comunicazioni</a>
+  <a href="aziende.html" class="active">Aziende e Società</a>
+  <a href="mezzi.html">Mezzi e Dipendenti</a>
+  <a href="scadenze.html">Scadenze</a>
+  <a href="utenti.html">Utenti</a>
+  <a href="#" id="logoutLink" class="logout-link">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+  <!-- Pannello attivazione sezione -->
+  <div id="servicePanel" class="service-activation-panel">
+    <div class="service-activation-header">
+      <div class="service-activation-info">
+        <span class="service-activation-icon" id="serviceIcon">●</span>
+        <div>
+          <strong id="serviceStatusLabel">Sezione disattivata</strong>
+          <p id="servicePeriodLabel" style="font-size:12px;color:#888;margin:2px 0 0;">Attiva questa sezione per gestire aziende e società</p>
+        </div>
+      </div>
+      <div class="service-activation-toggle">
+        <label class="switch">
+          <input type="checkbox" id="serviceToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div id="sectionContent">
+
+  <div class="page-header">
+    <h1>🏢 Aziende e Società</h1>
+    <button id="newAziendaBtn" class="btn btn-primary" type="button">+ Nuova Azienda</button>
+  </div>
+
+  <div class="stats">
+    <div class="card"><h3>Totale aziende</h3><p id="statAziende">0</p></div>
+    <div class="card"><h3>Dipendenti totali</h3><p id="statDipendenti">0</p></div>
+    <div class="card"><h3>Costo mensile totale</h3><p id="statCostoMensile">€ 0</p></div>
+    <div class="card"><h3>Costo annuo totale</h3><p id="statCostoAnnuo">€ 0</p></div>
+  </div>
+
+  <div class="filters">
+    <select id="filterSettore">
+      <option value="">Tutti i settori</option>
+      <option value="Nettezza urbana">Nettezza urbana</option>
+      <option value="Servizio idrico">Servizio idrico</option>
+      <option value="Servizio elettrico">Servizio elettrico</option>
+      <option value="Manutenzione strade">Manutenzione strade</option>
+      <option value="Verde pubblico">Verde pubblico</option>
+      <option value="Altro">Altro</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="Cerca azienda…" />
+    <button id="exportAziendeExcelBtn" class="btn btn-outline" type="button" data-guard="exportAziendeExcel" style="margin-left:auto;">📥 Esporta Excel</button>
+    <button id="exportAziendePDFBtn" class="btn btn-outline" type="button" data-guard="exportAziendePDF">📄 Esporta PDF</button>
+  </div>
+
+  <!-- Aziende cards -->
+  <div id="aziendeList" class="aziende-grid"></div>
+
+  </div><!-- /sectionContent -->
+</div>
+
+<!-- Modal Nuova Azienda -->
+<div class="modal-overlay" id="aziendaModal">
+  <div class="modal-box">
+    <button id="closeAziendaModalBtn" class="close-btn" type="button" aria-label="Chiudi finestra azienda">&times;</button>
+    <h2 id="modalTitle">Nuova Azienda</h2>
+    <input type="hidden" id="editAziendaId">
+    <div class="form-group">
+      <label>Ragione sociale</label>
+      <input type="text" id="azRagioneSociale" placeholder="Es. EcoService S.r.l.">
+    </div>
+    <div class="form-group">
+      <label>Settore</label>
+      <select id="azSettore">
+        <option value="Nettezza urbana">Nettezza urbana</option>
+        <option value="Servizio idrico">Servizio idrico</option>
+        <option value="Servizio elettrico">Servizio elettrico</option>
+        <option value="Manutenzione strade">Manutenzione strade</option>
+        <option value="Verde pubblico">Verde pubblico</option>
+        <option value="Altro">Altro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>P.IVA</label>
+      <input type="text" id="azPiva" placeholder="01234567890">
+    </div>
+    <div class="form-group">
+      <label>Indirizzo sede</label>
+      <input type="text" id="azIndirizzo" placeholder="Via Roma, 1 – 89900 Vibo Valentia">
+    </div>
+    <div class="form-group">
+      <label>Telefono</label>
+      <input type="text" id="azTelefono" placeholder="0963 123456">
+    </div>
+    <div class="form-group">
+      <label>Email / PEC</label>
+      <input type="text" id="azEmail" placeholder="info@ecoservicesrl.it">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label>Costo mensile (€)</label>
+        <input type="number" id="azCostoMensile" placeholder="0" min="0" step="0.01">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Costo annuo (€)</label>
+        <input type="number" id="azCostoAnnuo" placeholder="0" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Riferimento bando</label>
+      <input type="text" id="azBando" placeholder="Es. Bando N.123/2025 – Nettezza urbana">
+    </div>
+    <div class="form-group">
+      <label>Scadenza contratto</label>
+      <input type="date" id="azScadenza">
+    </div>
+    <div class="actions">
+      <button id="saveAziendaBtn" class="btn btn-primary" type="button" data-guard="saveAzienda">Salva</button>
+      <button id="cancelAziendaBtn" class="btn btn-outline" type="button">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dipendente -->
+<div class="modal-overlay" id="dipendenteModal">
+  <div class="modal-box">
+    <button id="closeDipendenteModalBtn" class="close-btn" type="button" aria-label="Chiudi finestra dipendente">&times;</button>
+    <h2 id="dipModalTitle">Nuovo Dipendente</h2>
+    <input type="hidden" id="dipAziendaId">
+    <input type="hidden" id="editDipId">
+    <div class="form-group">
+      <label>Nome e Cognome</label>
+      <input type="text" id="dipNome" placeholder="Mario Rossi">
+    </div>
+    <div class="form-group">
+      <label>Codice Fiscale</label>
+      <input type="text" id="dipCF" placeholder="RSSMRA80A01F205X">
+    </div>
+    <div class="form-group">
+      <label>Ruolo / Mansione</label>
+      <input type="text" id="dipRuolo" placeholder="Es. Autista, Operaio, Responsabile">
+    </div>
+    <div class="form-group">
+      <label>Telefono</label>
+      <input type="text" id="dipTelefono" placeholder="333 1234567">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="text" id="dipEmail" placeholder="mario.rossi@email.it">
+    </div>
+    <div class="form-group">
+      <label>Data assunzione</label>
+      <input type="date" id="dipAssunzione">
+    </div>
+    <div class="actions">
+      <button id="saveDipendenteBtn" class="btn btn-primary" type="button" data-guard="saveDipendente">Salva</button>
+      <button id="cancelDipendenteBtn" class="btn btn-outline" type="button">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-overlay" id="detailPanel">
+  <button id="closeDetailBtn" class="close-btn" type="button" aria-label="Chiudi dettagli azienda">&times;</button>
+  <h2 id="detailTitle"></h2>
+  <div id="detailContent"></div>
+  <div class="actions" id="detailActions"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="civicos-firestore.js"></script>
+<script src="portale-auth-firebase.js"></script>
+<script src="portale-auth.js"></script>
+<script src="aziende.js"></script>
+
+<style>
+.switch { position:relative; display:inline-block; width:50px; height:26px; }
+.switch input { opacity:0; width:0; height:0; }
+.slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; border-radius:26px; transition:.3s; }
+.slider:before { position:absolute; content:""; height:20px; width:20px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; }
+.switch input:checked + .slider { background:#2E7D32; }
+.switch input:checked + .slider:before { transform:translateX(24px); }
+.service-activation-panel { background:#fff; border-radius:10px; padding:18px 20px; margin-bottom:20px; border:1px solid #e0e4ea; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.service-activation-header { display:flex; align-items:center; justify-content:space-between; }
+.service-activation-info { display:flex; align-items:center; gap:12px; }
+.service-activation-icon { font-size:22px; line-height:1; }
+.service-disabled-overlay { opacity:.45; pointer-events:none; }
+
+.aziende-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:18px; }
+.azienda-card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); border-left:4px solid #1E4E8C; }
+.azienda-card h3 { font-size:16px; color:#1E4E8C; margin-bottom:6px; }
+.azienda-card .settore-badge { display:inline-block; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; background:#e3f2fd; color:#1565C0; margin-bottom:10px; }
+.azienda-card .info-row { font-size:13px; color:#555; margin:3px 0; }
+.azienda-card .costi-row { display:flex; gap:16px; margin-top:10px; padding-top:10px; border-top:1px solid #eee; }
+.azienda-card .costi-row .costo { text-align:center; flex:1; }
+.azienda-card .costi-row .costo span { font-size:11px; color:#888; display:block; }
+.azienda-card .costi-row .costo strong { font-size:16px; color:#1E4E8C; }
+.azienda-card .card-actions { display:flex; gap:6px; margin-top:12px; }
+.azienda-card .card-actions .btn { font-size:12px; padding:5px 12px; }
+.dip-table { width:100%; border-collapse:collapse; margin-top:12px; }
+.dip-table th, .dip-table td { padding:6px 10px; text-align:left; font-size:12px; }
+.dip-table th { background:#f4f7fb; font-weight:600; border-bottom:1px solid #ddd; }
+.dip-table td { border-bottom:1px solid #f0f0f0; }
+
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.4); z-index:500; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:#fff; border-radius:14px; padding:28px; width:520px; max-height:90vh; overflow-y:auto; position:relative; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+.modal-box h2 { font-size:20px; color:#1E4E8C; margin-bottom:18px; }
+.modal-box .close-btn { position:absolute; top:14px; right:14px; background:none; border:none; font-size:24px; cursor:pointer; color:#888; }
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:13px; font-weight:600; color:#555; margin-bottom:4px; }
+.form-group input, .form-group select, .form-group textarea { width:100%; padding:9px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; outline:none; }
+.form-group input:focus, .form-group select:focus { border-color:#1E4E8C; }
+.form-row { display:flex; gap:14px; }
+</style>
+</body>
+</html>

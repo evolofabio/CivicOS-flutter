@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicOS – Registrazione Operatore</title>
+<link rel="stylesheet" href="auth.css">
+</head>
+<body class="auth-body">
+
+<div class="auth-container">
+
+  <img src="CivicOS-Remove.png" alt="CivicOS Logo" class="auth-logo">
+  <div class="auth-subtitle">Civic Operating System</div>
+  <div class="auth-description">Il sistema che unisce comune e cittadini</div>
+
+  <div class="auth-card">
+    <h2>Crea il tuo account</h2>
+
+    <form id="regForm" onsubmit="return handleRegister(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" placeholder="Mario" required>
+        </div>
+        <div class="form-group">
+          <label for="cognome">Cognome</label>
+          <input type="text" id="cognome" placeholder="Rossi" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="comune">Comune di residenza</label>
+        <select id="comune" required onchange="updateFrazioni()">
+          <option value="">Seleziona un comune</option>
+          <option value="Acquaro">Acquaro</option>
+          <option value="Arena">Arena</option>
+          <option value="Briatico">Briatico</option>
+          <option value="Brognaturo">Brognaturo</option>
+          <option value="Capistrano">Capistrano</option>
+          <option value="Cessaniti">Cessaniti</option>
+          <option value="Dasà">Dasà</option>
+          <option value="Dinami">Dinami</option>
+          <option value="Drapia">Drapia</option>
+          <option value="Fabrizia">Fabrizia</option>
+          <option value="Filadelfia">Filadelfia</option>
+          <option value="Filandari">Filandari</option>
+          <option value="Francavilla Angitola">Francavilla Angitola</option>
+          <option value="Francica">Francica</option>
+          <option value="Gerocarne">Gerocarne</option>
+          <option value="Ionadi">Ionadi</option>
+          <option value="Joppolo">Joppolo</option>
+          <option value="Limbadi">Limbadi</option>
+          <option value="Maierato">Maierato</option>
+          <option value="Mileto">Mileto</option>
+          <option value="Mongiana">Mongiana</option>
+          <option value="Monterosso Calabro">Monterosso Calabro</option>
+          <option value="Nardodipace">Nardodipace</option>
+          <option value="Nicotera">Nicotera</option>
+          <option value="Parghelia">Parghelia</option>
+          <option value="Pizzo">Pizzo</option>
+          <option value="Pizzoni">Pizzoni</option>
+          <option value="Polia">Polia</option>
+          <option value="Ricadi">Ricadi</option>
+          <option value="Rombiolo">Rombiolo</option>
+          <option value="San Calogero">San Calogero</option>
+          <option value="San Costantino Calabro">San Costantino Calabro</option>
+          <option value="San Gregorio d'Ippona">San Gregorio d'Ippona</option>
+          <option value="San Nicola da Crissa">San Nicola da Crissa</option>
+          <option value="Sant'Onofrio">Sant'Onofrio</option>
+          <option value="Serra San Bruno">Serra San Bruno</option>
+          <option value="Simbario">Simbario</option>
+          <option value="Soriano Calabro">Soriano Calabro</option>
+          <option value="Spadola">Spadola</option>
+          <option value="Spilinga">Spilinga</option>
+          <option value="Stefanaconi">Stefanaconi</option>
+          <option value="Tropea">Tropea</option>
+          <option value="Vallelonga">Vallelonga</option>
+          <option value="Vazzano">Vazzano</option>
+          <option value="Vibo Valentia">Vibo Valentia</option>
+          <option value="Zaccanopoli">Zaccanopoli</option>
+          <option value="Zambrone">Zambrone</option>
+          <option value="Zungri">Zungri</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="frazione">Frazione (opzionale)</label>
+        <select id="frazione">
+          <option value="">Seleziona prima il comune</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">Numero di telefono</label>
+        <input type="tel" id="telefono" placeholder="+39 333 1234567" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="mario.rossi@email.it" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="Minimo 6 caratteri" required minlength="6">
+          <button type="button" class="password-toggle" onclick="togglePassword()">👁</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="indirizzo">Indirizzo di residenza</label>
+          <input type="text" id="indirizzo" placeholder="Via Roma" required>
+        </div>
+        <div class="form-group small">
+          <label for="civico">N°</label>
+          <input type="text" id="civico" placeholder="12" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="regBtn">Registrati</button>
+    </form>
+  </div>
+
+  <div class="auth-footer">
+    Hai già un account? <a href="login.html">Accedi</a>
+  </div>
+
+</div>
+
+<script>
+const frazioniMap = {
+  'Acquaro': ['Ariola', 'Piani', 'Piani di Acquaro', 'Serrata'],
+  'Arena': ['Bivieri', 'Croce', 'Malgari', 'Piani di Arena', 'Santa Maria', 'Santicelli'],
+  'Briatico': ['Mandaradoni', 'Paradisoni', 'Potenzoni', 'San Costantino'],
+  'Capistrano': ['San Nicola'],
+  'Cessaniti': ['Pannaconi', 'San Cono', 'Favelloni', 'Mantineo', 'Piana Pugliese', 'San Michele', "Sant'Andrea", 'Vena'],
+  'Dasà': ["Sant'Antonio"],
+  'Dinami': ['Monsoreto', 'Melicuccà', 'San Giovanni'],
+  'Drapia': ['Brattirò', 'Caria', 'Gasponi'],
+  'Fabrizia': ['Cassari', 'Ciano'],
+  'Filadelfia': ['Montesoro', 'Piano delle Querce', 'San Giovanni', 'San Teodoro', 'Fossa', 'Caria', 'Lenza'],
+  'Filandari': ['Arzona', 'Mesiano', 'Scaliti', 'Vena di Maida'],
+  'Francavilla Angitola': ['Motta Filocastro', 'Calvario'],
+  'Gerocarne': ['Ariola', 'Ciano', "Sant'Angelo"],
+  'Ionadi': ['Nao', 'Vena di Ionadi'],
+  'Joppolo': ['Coccorino', 'Coccorinello', 'Caroniti'],
+  'Limbadi': ['Badia', 'Motta Filocastro', 'San Nicola De Legistis'],
+  'Mileto': ['Calabrò', 'Comparni', 'Paravati'],
+  'Nardodipace': ['Cassari', 'Ragonà', 'San Todaro', 'Vecchio Abitato'],
+  'Nicotera': ['Badia', 'Comerconi', 'Marina di Nicotera', 'Preitoni', 'San Nicola', 'Monte Poro'],
+  'Parghelia': ['Fitili', 'Michelizia'],
+  'Pizzo': ['Marinella', 'Prangi'],
+  'Pizzoni': ['Vascellero', 'San Nicola'],
+  'Polia': ['Trecroci', 'Menniti', 'Poliolo'],
+  'Ricadi': ['Brivadi', 'Lampazzone', 'Orsigliadi', 'San Nicolò', 'Santa Domenica', 'Santa Maria'],
+  'Rombiolo': ['Pernocari', 'Presinaci', 'Moladi', 'Mesiano'],
+  'San Calogero': ['Calimera'],
+  'San Costantino Calabro': ['San Costantino Scalo'],
+  "San Gregorio d'Ippona": ['Zammarò'],
+  'San Nicola da Crissa': ['Piscopio', 'Trivio'],
+  "Sant'Onofrio": ['Papanice'],
+  'Serra San Bruno': ['Ellera', 'Ninfo', 'Spinetto'],
+  'Simbario': ['Piani di Simbario'],
+  'Soriano Calabro': ['San Domenico'],
+  'Spilinga': ['Carciadi', 'Panaja'],
+  'Stefanaconi': ["Sant'Angelo"],
+  'Vibo Valentia': ['Bivona', 'Longobardi', 'Piscopio', 'Porto Salvo', 'San Pietro di Bivona', 'Triparni', 'Vena Inferiore', 'Vena Media', 'Vena Superiore', 'Vibo Marina'],
+  'Zaccanopoli': ['Coccorino'],
+  'Zambrone': ['Daffinà', 'San Giovanni'],
+  'Zungri': ['Papaglionti']
+};
+
+function updateFrazioni() {
+  const comune = document.getElementById('comune').value;
+  const sel = document.getElementById('frazione');
+  sel.innerHTML = '<option value="">Nessuna frazione</option>';
+  if (frazioniMap[comune]) {
+    frazioniMap[comune].forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f;
+      opt.textContent = f;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+function togglePassword() {
+  const pw = document.getElementById('password');
+  const btn = pw.nextElementSibling;
+  if (pw.type === 'password') {
+    pw.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    pw.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+function handleRegister(e) {
+  e.preventDefault();
+  const btn = document.getElementById('regBtn');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>';
+
+  setTimeout(() => {
+    sessionStorage.setItem('civicos_auth', JSON.stringify({
+      email: document.getElementById('email').value.trim(),
+      nome: document.getElementById('nome').value.trim(),
+      cognome: document.getElementById('cognome').value.trim(),
+      comune: document.getElementById('comune').value,
+      frazione: document.getElementById('frazione').value,
+      role: 'operatore',
+      loggedIn: true,
+      ts: Date.now()
+    }));
+    window.location.href = 'index.html';
+  }, 800);
+
+  return false;
+}
+</script>
+
+</body>
+</html>

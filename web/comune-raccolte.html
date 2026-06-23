@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portale Comune - Raccolte RFID</title>
+  <meta name="description" content="Sezione amministrativa per il controllo delle raccolte RFID effettuate dagli operatori.">
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { font-family: 'Manrope', sans-serif; background: #F4F7FF; color: #0D1735; margin: 0; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 38px 18px; }
+    #map { width: 100%; height: 320px; border-radius: 13px; margin-bottom: 28px; box-shadow: 0 2px 12px rgba(10,132,255,.07); }
+    h1 { font-size: 2.1rem; font-weight: 900; margin-bottom: 18px; }
+    .section-title { font-size: 1.2rem; font-weight: 800; color: #1565C0; margin-bottom: 18px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 13px; box-shadow: 0 2px 12px rgba(10,132,255,.07); overflow: hidden; }
+    th, td { padding: 13px 10px; text-align: left; font-size: 15px; }
+    th { background: #E8EEF8; color: #1565C0; font-weight: 800; }
+    tr:not(:last-child) { border-bottom: 1px solid #E8EEF8; }
+    .badge { display: inline-block; padding: 3px 11px; border-radius: 980px; font-size: 13px; font-weight: 700; }
+    .badge-ok { background: #E8F8F0; color: #30D158; }
+    .badge-warn { background: #FFF4E0; color: #FF9F0A; }
+    .badge-err { background: #F8E8E8; color: #FF453A; }
+    @media(max-width:700px){.container{padding:18px 4px;}th,td{font-size:13px;padding:8px 5px;}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Controllo raccolte RFID</h1>
+    <div class="section-title">Mappa raccolte effettuate</div>
+    <div id="map"></div>
+    <div class="section-title">Elenco raccolte effettuate dagli operatori</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px 18px;margin-bottom:18px;align-items:center;">
+      <input id="search" type="text" placeholder="Cerca per operatore, codice, indirizzo, zona..." style="flex:1;min-width:180px;padding:9px 13px;border-radius:8px;border:1.5px solid #E0E7F6;font-size:15px;">
+      <select id="filtro-stato" style="padding:9px 13px;border-radius:8px;border:1.5px solid #E0E7F6;font-size:15px;">
+        <option value="">Tutti gli stati</option>
+        <option value="OK">OK</option>
+        <option value="Segnalazione">Segnalazione</option>
+        <option value="Anomalia">Anomalia</option>
+      </select>
+      <button onclick="esportaCSV()" style="background:linear-gradient(135deg,#0D3B7A,#1565C0);color:#fff;border:none;border-radius:980px;padding:10px 22px;font-size:15px;font-weight:800;cursor:pointer;">Esporta CSV</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Data/Ora</th>
+          <th>Operatore</th>
+          <th>Codice RFID/QR</th>
+          <th>Indirizzo</th>
+          <th>Zona</th>
+          <th>Stato</th>
+        </tr>
+      </thead>
+      <tbody id="tabella-raccolte">
+        <!-- Popolato da JS -->
+      </tbody>
+    </table>
+        <!-- Modale dettaglio raccolta -->
+        <div id="modale-dettaglio" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.18);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
+          <div style="background:#fff;border-radius:18px;max-width:400px;width:95vw;padding:28px 18px;box-shadow:0 8px 32px rgba(0,0,0,.13);margin:0 auto;">
+            <div style="font-size:19px;font-weight:900;color:#0A84FF;margin-bottom:13px;">Dettaglio raccolta</div>
+            <div id="dettaglio-content"></div>
+            <button onclick="chiudiDettaglio()" class="btn" style="margin-top:18px;width:100%;background:linear-gradient(135deg,#0D3B7A,#1565C0);">Chiudi</button>
+          </div>
+        </div>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Demo dati raccolte
+    // Demo raccolte con coordinate (simulate)
+    const raccolte = [
+      { data: '2026-05-30 09:18', operatore: 'Rossi', codice: '#A1F3', indirizzo: 'Via Nazionale, 43', zona: 'Centro', stato: 'OK', lat:41.9009, lng:12.4963 },
+      { data: '2026-05-30 09:22', operatore: 'Rossi', codice: '#B2C4', indirizzo: 'Piazza Venezia, 2', zona: 'Centro', stato: 'OK', lat:41.8966, lng:12.4823 },
+      { data: '2026-05-30 09:30', operatore: 'Bianchi', codice: '#C3D5', indirizzo: 'Via Cola di Rienzo, 80', zona: 'Prati', stato: 'Segnalazione', lat:41.9107, lng:12.4663 },
+      { data: '2026-05-30 09:35', operatore: 'Verdi', codice: '#D4E6', indirizzo: 'Viale Trastevere, 100', zona: 'Trastevere', stato: 'OK', lat:41.8820, lng:12.4662 },
+      { data: '2026-05-30 09:40', operatore: 'Rossi', codice: '#E5F7', indirizzo: 'Via Cavour, 12', zona: 'Centro', stato: 'Anomalia', lat:41.8962, lng:12.4956 }
+    ];
+    // Mappa Leaflet
+    let map = null;
+    let markers = [];
+    function renderMap() {
+      if (!map) {
+        map = L.map('map').setView([41.8966, 12.4823], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+      }
+      // Rimuovi marker vecchi
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
+      const search = document.getElementById('search').value.toLowerCase();
+      const stato = document.getElementById('filtro-stato').value;
+      const filtered = raccolte.filter(r => {
+        let match = true;
+        if (search) {
+          match = (
+            r.data.toLowerCase().includes(search) ||
+            r.operatore.toLowerCase().includes(search) ||
+            r.codice.toLowerCase().includes(search) ||
+            r.indirizzo.toLowerCase().includes(search) ||
+            r.zona.toLowerCase().includes(search)
+          );
+        }
+        if (stato && r.stato !== stato) match = false;
+        return match;
+      });
+      filtered.forEach(r => {
+        const marker = L.marker([r.lat, r.lng]).addTo(map);
+        marker.on('click', () => mostraDettaglio(r));
+        marker.bindPopup(`<b>${r.operatore}</b><br>${r.indirizzo}<br>${r.data}<br>Stato: ${r.stato}`);
+        markers.push(marker);
+      });
+      // Adatta vista
+      if (filtered.length > 0) {
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.2));
+      }
+    }
+    function renderTable() {
+      const tbody = document.getElementById('tabella-raccolte');
+      tbody.innerHTML = '';
+      const search = document.getElementById('search').value.toLowerCase();
+      const stato = document.getElementById('filtro-stato').value;
+      raccolte.filter(r => {
+        let match = true;
+        if (search) {
+          match = (
+            r.data.toLowerCase().includes(search) ||
+            r.operatore.toLowerCase().includes(search) ||
+            r.codice.toLowerCase().includes(search) ||
+            r.indirizzo.toLowerCase().includes(search) ||
+            r.zona.toLowerCase().includes(search)
+          );
+        }
+        if (stato && r.stato !== stato) match = false;
+        return match;
+      }).forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.data}</td>
+          <td>${r.operatore}</td>
+          <td>${r.codice}</td>
+          <td>${r.indirizzo}</td>
+          <td>${r.zona}</td>
+          <td>${statoBadge(r.stato)}</td>
+        `;
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', () => mostraDettaglio(r));
+        tbody.appendChild(tr);
+      });
+    }
+
+    let miniMappa = null;
+    function mostraDettaglio(r) {
+      const box = document.getElementById('dettaglio-content');
+      box.innerHTML = `
+        <div style="margin-bottom:10px"><b>Data/Ora:</b> ${r.data}</div>
+        <div style="margin-bottom:10px"><b>Operatore:</b> ${r.operatore}</div>
+        <div style="margin-bottom:10px"><b>Codice RFID/QR:</b> ${r.codice}</div>
+        <div style="margin-bottom:10px"><b>Indirizzo:</b> ${r.indirizzo}</div>
+        <div style="margin-bottom:10px"><b>Zona:</b> ${r.zona}</div>
+        <div style="margin-bottom:10px"><b>Stato:</b> ${statoBadge(r.stato)}</div>
+        <div style="margin-bottom:10px"><b>Posizione:</b><br><span style='font-size:13px'>Lat: ${r.lat}, Lng: ${r.lng}</span></div>
+        <div id="mini-mappa" style="width:100%;height:160px;border-radius:10px;"></div>
+      `;
+      document.getElementById('modale-dettaglio').style.display = 'flex';
+      setTimeout(()=>{
+        if (miniMappa) {
+          miniMappa.remove();
+          miniMappa = null;
+        }
+        miniMappa = L.map('mini-mappa', { attributionControl:false, zoomControl:false, dragging:false, scrollWheelZoom:false, doubleClickZoom:false, boxZoom:false, keyboard:false });
+        miniMappa.setView([r.lat, r.lng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMappa);
+        L.marker([r.lat, r.lng]).addTo(miniMappa);
+        setTimeout(()=>{ miniMappa.invalidateSize(); }, 150);
+      }, 100);
+    }
+
+    function chiudiDettaglio() {
+      document.getElementById('modale-dettaglio').style.display = 'none';
+      if (miniMappa) {
+        miniMappa.remove();
+        miniMappa = null;
+      }
+      const mini = document.getElementById('mini-mappa');
+      if (mini) mini.innerHTML = '';
+    }
+    function statoBadge(stato) {
+      if(stato==='OK') return '<span class="badge badge-ok">OK</span>';
+      if(stato==='Segnalazione') return '<span class="badge badge-warn">Segnalazione</span>';
+      return '<span class="badge badge-err">Anomalia</span>';
+    }
+    document.getElementById('search').addEventListener('input', () => { renderTable(); renderMap(); });
+    document.getElementById('filtro-stato').addEventListener('change', () => { renderTable(); renderMap(); });
+    renderTable();
+    renderMap();
+
+    function esportaCSV() {
+      const search = document.getElementById('search').value.toLowerCase();
+      const stato = document.getElementById('filtro-stato').value;
+      const filtered = raccolte.filter(r => {
+        let match = true;
+        if (search) {
+          match = (
+            r.data.toLowerCase().includes(search) ||
+            r.operatore.toLowerCase().includes(search) ||
+            r.codice.toLowerCase().includes(search) ||
+            r.indirizzo.toLowerCase().includes(search) ||
+            r.zona.toLowerCase().includes(search)
+          );
+        }
+        if (stato && r.stato !== stato) match = false;
+        return match;
+      });
+      let csv = 'Data/Ora,Operatore,Codice RFID/QR,Indirizzo,Zona,Stato\n';
+      filtered.forEach(r => {
+        csv += `"${r.data}","${r.operatore}","${r.codice}","${r.indirizzo}","${r.zona}","${r.stato}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'raccolte.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

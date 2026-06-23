@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Firebase Auth SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<title>CivicOS – Admin Login</title>
+<link rel="stylesheet" href="auth.css">
+</head>
+<body class="auth-body">
+
+<div class="auth-container">
+  <img src="CivicOS-Remove.png" alt="CivicOS Logo" class="auth-logo">
+  <div class="auth-subtitle">Civic Operating System</div>
+  <div class="auth-description">Pannello di controllo aziendale</div>
+
+  <div class="auth-card">
+    <div style="text-align:center"><span class="admin-badge">🔐 AREA RISERVATA ADMIN</span></div>
+
+    <h2>Accesso Admin</h2>
+
+    <div id="loginError" class="login-error"></div>
+
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" required placeholder="admin@civicos.it">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn-primary">
+        Accedi
+      </button>
+    </form>
+  </div>
+
+  <a href="../portale-comune/portale.html" class="admin-back-link">
+    ← Torna al portale operatori
+  </a>
+</div>
+
+<script>
+const _adminFirebaseConfig = {
+  apiKey: "AIzaSyB8f8WT5uaEB3J6BLOXeF9o27tBpsE9Dis",
+  authDomain: "civicos-bb9f7.firebaseapp.com",
+  projectId: "civicos-bb9f7",
+  appId: "1:41965079417:web:88dc757cb4033e59d33da8"
+};
+if (!firebase.apps.length) firebase.initializeApp(_adminFirebaseConfig);
+const _auth = firebase.auth();
+
+// Se già autenticato, vai direttamente al pannello
+_auth.onAuthStateChanged(function(user) {
+  if (user) window.location.href = 'admin.html';
+});
+
+function doLogin(e) {
+  e.preventDefault();
+  var email = document.getElementById('email').value.trim();
+  var pwd = document.getElementById('password').value;
+  var errEl = document.getElementById('loginError');
+  var btn = e.target.querySelector('button[type=submit]');
+
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Accesso in corso…';
+
+  _auth.signInWithEmailAndPassword(email, pwd)
+    .then(function() {
+      window.location.href = 'admin.html';
+    })
+    .catch(function(error) {
+      var msg = 'Email o password non validi';
+      if (error.code === 'auth/too-many-requests') msg = 'Troppi tentativi. Riprova più tardi.';
+      if (error.code === 'auth/network-request-failed') msg = 'Errore di rete. Controlla la connessione.';
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Accedi';
+    });
+  return false;
+}
+</script>
+</body>
+</html>
